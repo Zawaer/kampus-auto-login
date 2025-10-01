@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kampus Auto Login</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="icon48.png" alt="Kampus Auto Login" class="logo">
+            <h1>Kampus Auto Login</h1>
+        </div>
+        
+        <div class="content">
+            <div class="toggle-section">
+                <label class="toggle-label">
+                    <span class="toggle-text">Auto Login</span>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="autoLoginToggle">
+                        <span class="slider"></span>
+                    </div>
+                </label>
+            </div>
+            
+            <div class="status-section">
+                <div class="status-item">
+                    <span class="status-label">Status:</span>
+                    <span id="status" class="status-value">Disabled</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Current Site:</span>
+                    <span id="currentSite" class="status-value">Unknown</span>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <p class="info-text">
+                    When enabled, this extension will automatically navigate through the Kampus login process:
+                </p>
+                <ul class="process-list">
+                    <li>kampus.sanomapro.fi → kirjautuminen.sanomapro.fi</li>
+                    <li>Click MPASSid login button</li>
+                    <li>mpass-proxy.csc.fi → sanomapro.fi</li>
+                </ul>
+            </div>
+            
+            <div class="actions">
+                <button id="refreshStatus" class="btn btn-secondary">Refresh Status</button>
+                <button id="openOptions" class="btn btn-primary">Settings</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <span class="version">v1.0</span>
+        </div>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

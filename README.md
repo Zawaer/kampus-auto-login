@@ -2,7 +2,7 @@
 
 This Chrome extension automates the login process for Kampus Sanoma Pro by automatically navigating through the authentication flow:
 
-1. `kampus.sanomapro.fi` → `kirjautuminen.sanomapro.fi`
+1. Start at `kampus.sanomapro.fi` (automatically redirects to `kirjautuminen.sanomapro.fi`)
 2. Automatically clicks the MPASSid login button
 3. `mpass-proxy.csc.fi` → automatically continues to `sanomapro.fi`
 
@@ -28,9 +28,14 @@ This Chrome extension automates the login process for Kampus Sanoma Pro by autom
 
 The extension uses content scripts that run on specific domains:
 
-- **kampus-content.js**: Handles the initial page and looks for login buttons or automatic redirects
 - **kirjautuminen-content.js**: Automatically clicks the MPASSid login button on the login page
 - **mpass-content.js**: Automatically submits forms or clicks continue buttons on the MPASS proxy page
+
+## UI Features
+
+- **Toggle Switch**: Enable/disable auto-login functionality through the extension popup
+- **Status Display**: Shows current auto-login status and which site you're currently on
+- **Test Button**: Refresh status and test automation on the current page
 
 ## Debugging
 

@@ -6,6 +6,19 @@
     
     console.log('Kampus Auto Login: Running on kirjautuminen.sanomapro.fi');
     
+    // Check if auto-login is enabled before proceeding
+    async function checkAutoLoginEnabled() {
+        try {
+            const result = await chrome.storage.sync.get({
+                autoLoginEnabled: true // Default to enabled for backward compatibility
+            });
+            return result.autoLoginEnabled;
+        } catch (error) {
+            console.error('Kampus Auto Login: Error checking settings:', error);
+            return true; // Default to enabled if there's an error
+        }
+    }
+    
     function findAndClickMPASSButton() {
         // Look for MPASSid button with various possible selectors
         const selectors = [
@@ -57,7 +70,17 @@
         return false;
     }
     
-    function waitAndTryClick() {
+    async function waitAndTryClick() {
+        // Check if auto-login is enabled first
+        const isEnabled = await checkAutoLoginEnabled();
+        
+        if (!isEnabled) {
+            console.log('Kampus Auto Login: Auto-login is disabled, skipping automation');
+            return;
+        }
+        
+        console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
+        
         // Try immediately
         if (findAndClickMPASSButton()) {
             return;

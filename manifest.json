@@ -5,7 +5,8 @@
   "description": "Automates the login process for Kampus Sanoma Pro",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "host_permissions": [
     "*://kampus.sanomapro.fi/*",
@@ -13,12 +14,11 @@
     "*://mpass-proxy.csc.fi/*",
     "*://sanomapro.fi/*"
   ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Kampus Auto Login"
+  },
   "content_scripts": [
-    {
-      "matches": ["*://kampus.sanomapro.fi/*"],
-      "js": ["kampus-content.js"],
-      "run_at": "document_end"
-    },
     {
       "matches": ["*://kirjautuminen.sanomapro.fi/*"],
       "js": ["kirjautuminen-content.js"],
