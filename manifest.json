@@ -17,7 +17,13 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Kampus Auto Login"
+    "default_title": "Kampus Auto Login",
+    "default_icon": {
+      "48": "icon48.ico"
+    }
+  },
+  "icons": {
+    "48": "icon48.ico"
   },
   "content_scripts": [
     {
