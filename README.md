@@ -6,6 +6,8 @@ This Chrome extension automates the login process for Kampus Sanoma Pro by autom
 2. Automatically clicks the MPASSid login button
 3. `mpass-proxy.csc.fi` → automatically continues to `sanomapro.fi`
 
+<img width="491" height="675" alt="image" src="https://github.com/user-attachments/assets/f37dfcee-73f5-4db2-ac90-ba9218364fd1" />
+
 ## Installation
 
 ### Chrome
