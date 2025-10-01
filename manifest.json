@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Kampus Auto Login",
+  "version": "1.0",
+  "description": "Automates the login process for Kampus Sanoma Pro",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://kampus.sanomapro.fi/*",
+    "*://kirjautuminen.sanomapro.fi/*",
+    "*://mpass-proxy.csc.fi/*",
+    "*://sanomapro.fi/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://kampus.sanomapro.fi/*"],
+      "js": ["kampus-content.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["*://kirjautuminen.sanomapro.fi/*"],
+      "js": ["kirjautuminen-content.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["*://mpass-proxy.csc.fi/*"],
+      "js": ["mpass-content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
