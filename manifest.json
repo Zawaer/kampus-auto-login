@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Kampus Auto Login",
   "version": "1.0",
-  "description": "Automates the login process for Kampus Sanoma Pro",
+  "description": "Automate the login process for Sanoma Pro Kampus",
   "permissions": [
     "activeTab",
     "scripting",
