@@ -12,7 +12,8 @@
     "*://kampus.sanomapro.fi/*",
     "*://kirjautuminen.sanomapro.fi/*",
     "*://mpass-proxy.csc.fi/*",
-    "*://sanomapro.fi/*"
+  "*://sanomapro.fi/*",
+  "*://*.sanomapro.fi/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -27,6 +28,12 @@
     {
       "matches": ["*://mpass-proxy.csc.fi/*"],
       "js": ["mpass-content.js"],
+      "run_at": "document_end"
+    }
+    ,
+    {
+  "matches": ["*://sanomapro.fi/*", "*://*.sanomapro.fi/*"],
+      "js": ["sanomapro-content.js"],
       "run_at": "document_end"
     }
   ],
