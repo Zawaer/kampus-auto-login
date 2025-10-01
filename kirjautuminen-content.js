@@ -5,6 +5,23 @@
     'use strict';
     
     console.log('Kampus Auto Login: Running on kirjautuminen.sanomapro.fi');
+    // Visual indicator helper
+    function showIndicator(message, bg = '#643695', timeout = 3500) {
+        try {
+            const id = 'kampus-autologin-indicator';
+            let el = document.getElementById(id);
+            if (!el) {
+                el = document.createElement('div');
+                el.id = id;
+                Object.assign(el.style, {
+                    position: 'fixed',right: '12px',bottom: '12px',padding: '8px 12px',background: bg,color: '#fff',borderRadius: '6px',boxShadow: '0 4px 12px rgba(0,0,0,0.15)',zIndex: 2147483647,fontFamily: 'Segoe UI, Roboto, Arial, sans-serif',fontSize: '13px'
+                });
+                document.documentElement.appendChild(el);
+            } else { el.style.background = bg }
+            el.textContent = message;
+            if (timeout > 0) { clearTimeout(el._kampusTimeout); el._kampusTimeout = setTimeout(()=>{ try{ el.remove() }catch(e){} }, timeout) }
+        } catch (e) {}
+    }
     
     // Check if auto-login is enabled before proceeding
     async function checkAutoLoginEnabled() {
@@ -55,7 +72,8 @@
             return;
         }
         
-        console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
+    console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
+    showIndicator('Kampus Auto Login: starting...', '#643695', 4000);
         
         // Try immediately
         if (findAndClickMPASSButton()) {
@@ -80,6 +98,8 @@
                     allButtons.forEach((btn, index) => {
                         console.log(`${index + 1}:`, btn.textContent || btn.value || btn.outerHTML);
                     });
+                } else {
+                    showIndicator('Kampus Auto Login: clicked MPASS', '#28a745', 2500);
                 }
             }
         }, 1000);
