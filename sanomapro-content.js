@@ -1,8 +1,8 @@
 (function(){
     'use strict';
-    console.log('Kampus Auto Login: Running on sanomapro.fi');
+    console.log('Kampus Auto Login: Running on sanomapro.fi (click sequence mode)');
 
-    async function shouldRedirect() {
+    async function autoLoginEnabled() {
         try {
             const res = await chrome.storage.sync.get({ autoLoginEnabled: true });
             return res.autoLoginEnabled;
@@ -12,51 +12,149 @@
         }
     }
 
-    // Safety: limit retry attempts to avoid infinite loops
-    const REDIRECT_FLAG = 'kampus_auto_redirected';
-    const REDIRECT_ATTEMPTS = 'kampus_auto_redirect_attempts';
-    const MAX_ATTEMPTS = 3;
+    // Click sequence will run on every page load (no session flag)
 
-    (async function run() {
-        if (!await shouldRedirect()) {
-            console.log('Kampus Auto Login: Auto-login disabled; will not redirect from sanomapro');
+    // Wait for a selector to appear using MutationObserver, resolves element or null on timeout
+    function waitForSelector(selector, timeout = 10000) {
+        return new Promise((resolve) => {
+            try {
+                const existing = document.querySelector(selector);
+                if (existing) return resolve(existing);
+
+                const observer = new MutationObserver(() => {
+                    const el = document.querySelector(selector);
+                    if (el) {
+                        observer.disconnect();
+                        resolve(el);
+                    }
+                });
+
+                observer.observe(document.documentElement || document.body, {
+                    childList: true,
+                    subtree: true
+                });
+
+                setTimeout(() => {
+                    try { observer.disconnect(); } catch (e) {}
+                    resolve(null);
+                }, timeout);
+            } catch (e) {
+                console.error('Kampus Auto Login: waitForSelector error', e);
+                resolve(null);
+            }
+        });
+    }
+
+    async function tryClickSequence() {
+        if (!await autoLoginEnabled()) {
+            console.log('Kampus Auto Login: Auto-login disabled; will not perform clicks on sanomapro');
             return;
         }
 
+        // Skip if on kampus or mpass-proxy hosts
+        const host = window.location.hostname;
+        if (host.includes('kampus.sanomapro.fi') || host.includes('mpass-proxy.csc.fi')) {
+            console.log('Kampus Auto Login: On kampus or mpass-proxy host; skipping sanomapro click sequence');
+            return;
+        }
+
+        // No session flag check; always attempt click sequence on page load
+
         try {
-            // If we're already on kampus.sanomapro, nothing to do
-            if (window.location.hostname.includes('kampus.sanomapro.fi')) {
-                return;
+            const firstSelector = 'ul.nav:nth-child(2) > li:nth-child(2) > a:nth-child(1)'; // Oppimateriaalit
+            const secondSelector = '.open > div:nth-child(2) > div:nth-child(2) > a:nth-child(2) > span:nth-child(1)'; // Otaniemen lukio
+
+            // Helper to simulate a realistic click (tries ancestor anchor, pointer/mouse events, focus/hover)
+            async function simulateClick(targetEl) {
+                if (!targetEl) return false;
+                try {
+                    const anchor = targetEl.closest && targetEl.closest('a');
+                    if (anchor) {
+                        // anchor click is usually most reliable
+                        anchor.focus();
+                        anchor.click();
+                        return true;
+                    }
+
+                    // Try a sequence of events to mimic a user click
+                    targetEl.focus && targetEl.focus();
+                    targetEl.dispatchEvent && targetEl.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window }));
+                    targetEl.dispatchEvent && targetEl.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+                    targetEl.dispatchEvent && targetEl.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+                    // small pause
+                    await new Promise(r => setTimeout(r, 40));
+                    targetEl.dispatchEvent && targetEl.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
+                    targetEl.dispatchEvent && targetEl.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                    return true;
+                } catch (err) {
+                    console.warn('Kampus Auto Login: simulateClick encountered error', err);
+                    try {
+                        // Last resort: dispatch a simple click event
+                        targetEl.click && targetEl.click();
+                        return true;
+                    } catch (e) {
+                        return false;
+                    }
+                }
             }
 
-            const target = 'https://kampus.sanomapro.fi/';
-
-            // Use sessionStorage on the page to avoid cross-tab/global persistence
-            const hasFlag = sessionStorage.getItem(REDIRECT_FLAG);
-            const attempts = parseInt(sessionStorage.getItem(REDIRECT_ATTEMPTS) || '0', 10) || 0;
-
-            if (hasFlag) {
-                if (attempts >= MAX_ATTEMPTS) {
-                    console.log('Kampus Auto Login: Redirect previously attempted', attempts, 'times; giving up');
-                    return;
+            console.log('Kampus Auto Login: Waiting for Oppimateriaalit element:', firstSelector);
+            const firstEl = await waitForSelector(firstSelector, 12000);
+            if (firstEl) {
+                console.log('Kampus Auto Login: Found Oppimateriaalit; attempting realistic click');
+                const clicked = await simulateClick(firstEl);
+                if (!clicked) {
+                    console.warn('Kampus Auto Login: simulateClick failed; will try a fallback dispatch');
+                    try { firstEl.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })); } catch (e) { console.warn('Fallback dispatch failed', e); }
                 }
 
-                // Retry redirect (previous attempt likely failed); increment attempts and replace location
-                const next = attempts + 1;
-                sessionStorage.setItem(REDIRECT_ATTEMPTS, String(next));
-                console.log('Kampus Auto Login: Previous redirect flag present; retrying redirect attempt', next);
-                // Use replace to avoid polluting history
-                location.replace(target);
-                return;
+                // After clicking, wait a bit for submenu/UI to open
+                await new Promise(r => setTimeout(r, 600));
+
+                // If second element is not yet present, try hovering and retry click once
+                let secondEl = document.querySelector(secondSelector);
+                if (!secondEl) {
+                    console.log('Kampus Auto Login: Second element not present yet; attempting hover + retry on Oppimateriaalit');
+                    try { firstEl.dispatchEvent(new MouseEvent('mouseover', { bubbles: true })); } catch (e) {}
+                    await new Promise(r => setTimeout(r, 400));
+                    // retry simulateClick to ensure the submenu opens
+                    try { await simulateClick(firstEl); } catch (e) {}
+                }
+            } else {
+                console.log('Kampus Auto Login: Oppimateriaalit element not found');
             }
 
-            // First attempt: set flag and attempts, then redirect
-            sessionStorage.setItem(REDIRECT_FLAG, '1');
-            sessionStorage.setItem(REDIRECT_ATTEMPTS, '1');
-            console.log('Kampus Auto Login: Redirecting to', target);
-            location.replace(target);
+            // Wait briefly for the UI to update/navigation to occur
+
+            await new Promise(r => setTimeout(r, 900));
+
+            console.log('Kampus Auto Login: Waiting for Otaniemen lukio element:', secondSelector);
+            const secondEl = await waitForSelector(secondSelector, 12000);
+            if (secondEl) {
+                try {
+                    console.log('Kampus Auto Login: Clicking Otaniemen lukio');
+                    secondEl.click();
+                    // Mark successful click attempt to avoid repeating after success
+                    // No session flag set; running on each load
+                } catch (e) {
+                    console.warn('Kampus Auto Login: Click failed on Otaniemen lukio, dispatching mouse event', e);
+                    secondEl.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                    // No session flag set; running on each load
+                }
+            } else {
+                console.log('Kampus Auto Login: Otaniemen lukio element not found');
+            }
+
         } catch (e) {
-            console.error('Kampus Auto Login: Error during sanomapro redirect', e);
+            console.error('Kampus Auto Login: Error during sanomapro click sequence', e);
         }
-    })();
+    }
+
+    // Run when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryClickSequence);
+    } else {
+        tryClickSequence();
+    }
+
 })();

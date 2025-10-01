@@ -28,9 +28,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             await chrome.storage.sync.set({
                 autoLoginEnabled: isEnabled
             });
-            
-            // Show a brief confirmation
-            showNotification(isEnabled ? 'Auto-login enabled' : 'Auto-login disabled');
+            // Notification removed: toggling no longer shows a tooltip/notification
             
         } catch (error) {
             console.error('Error saving settings:', error);
@@ -48,42 +46,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // The options/settings feature was removed from the popup UI.
     // If you add a dedicated options page later, implement opening it here.
 
-    function showNotification(message) {
-        // Create a temporary notification element
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #2196F3;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-size: 12px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        `;
-        notification.textContent = message;
-        
-        document.body.appendChild(notification);
-        
-        // Fade in
-        setTimeout(() => {
-            notification.style.opacity = '1';
-        }, 10);
-        
-        // Fade out and remove
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 2000);
-    }
+    // showNotification removed: no visual tooltip/notification on toggle
 
     // Add keyboard support
     document.addEventListener('keydown', function(event) {
