@@ -23,7 +23,7 @@ body {
 }
 
 .header {
-    background: linear-gradient(135deg, #2196F3, #1976D2);
+    background: #643695;
     color: white;
     padding: 16px;
     text-align: center;
@@ -110,7 +110,7 @@ body {
 }
 
 input:checked + .slider {
-    background-color: #2196F3;
+    background-color: #643695;
 }
 
 input:checked + .slider:before {
@@ -154,14 +154,14 @@ input:checked + .slider:before {
 .info-section {
     margin-bottom: 20px;
     padding: 16px;
-    background: #e3f2fd;
+    background: #fbf8ff;
     border-radius: 8px;
-    border-left: 4px solid #2196F3;
+    border-left: 4px solid #643695;
 }
 
 .info-text {
     margin-bottom: 12px;
-    color: #1565C0;
+    color: #643695;
     font-size: 13px;
 }
 
@@ -173,7 +173,7 @@ input:checked + .slider:before {
 
 .process-list li {
     padding: 4px 0;
-    color: #1565C0;
+    color: #643695;
     font-size: 12px;
     position: relative;
     padding-left: 16px;
@@ -183,7 +183,7 @@ input:checked + .slider:before {
     content: "→";
     position: absolute;
     left: 0;
-    color: #2196F3;
+    color: #643695;
     font-weight: bold;
 }
 
@@ -205,12 +205,12 @@ input:checked + .slider:before {
 }
 
 .btn-primary {
-    background: #2196F3;
+    background: #643695;
     color: white;
 }
 
 .btn-primary:hover {
-    background: #1976D2;
+    background: #643695;
     transform: translateY(-1px);
 }
 
@@ -243,15 +243,15 @@ input:checked + .slider:before {
 
 /* Hover effects */
 .toggle-label:hover .toggle-text {
-    color: #2196F3;
+    color: #643695;
 }
 
 /* Focus styles for accessibility */
 .toggle-switch input:focus + .slider {
-    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
+    box-shadow: 0 0 0 2px rgba(100, 54, 149, 0.3);
 }
 
 .btn:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
+    box-shadow: 0 0 0 2px rgba(100, 54, 149, 0.3);
 }
