@@ -12,6 +12,44 @@
         }
     }
 
+    // Small visual indicator helper (toast) injected into the page
+    function showIndicator(message, bg = '#643695', timeout = 3500) {
+        try {
+            const id = 'kampus-autologin-indicator';
+            let el = document.getElementById(id);
+            if (!el) {
+                el = document.createElement('div');
+                el.id = id;
+                el.setAttribute('aria-live', 'polite');
+                Object.assign(el.style, {
+                    position: 'fixed',
+                    right: '12px',
+                    bottom: '12px',
+                    padding: '8px 12px',
+                    background: bg,
+                    color: '#fff',
+                    borderRadius: '6px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    zIndex: 2147483647,
+                    fontFamily: 'Segoe UI, Roboto, Arial, sans-serif',
+                    fontSize: '13px'
+                });
+                document.documentElement.appendChild(el);
+            } else {
+                el.style.background = bg;
+            }
+            el.textContent = message;
+            if (timeout > 0) {
+                clearTimeout(el._kampusTimeout);
+                el._kampusTimeout = setTimeout(() => { try { el.remove(); } catch (e) {} }, timeout);
+            }
+        } catch (e) { /* fail silently */ }
+    }
+
+    function hideIndicator() {
+        try { const el = document.getElementById('kampus-autologin-indicator'); if (el) el.remove(); } catch (e) {}
+    }
+
     // Click sequence will run on every page load (no session flag)
 
     // Wait for a selector to appear using MutationObserver, resolves element or null on timeout

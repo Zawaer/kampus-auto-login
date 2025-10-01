@@ -5,6 +5,21 @@
     'use strict';
     
     console.log('Kampus Auto Login: Running on mpass-proxy.csc.fi');
+    // Visual indicator helper
+    function showIndicator(message, bg = '#643695', timeout = 3500) {
+        try {
+            const id = 'kampus-autologin-indicator';
+            let el = document.getElementById(id);
+            if (!el) {
+                el = document.createElement('div');
+                el.id = id;
+                Object.assign(el.style, {position:'fixed',right:'12px',bottom:'12px',padding:'8px 12px',background:bg,color:'#fff',borderRadius:'6px',boxShadow:'0 4px 12px rgba(0,0,0,0.15)',zIndex:2147483647,fontFamily:'Segoe UI, Roboto, Arial, sans-serif',fontSize:'13px'});
+                document.documentElement.appendChild(el);
+            } else { el.style.background = bg }
+            el.textContent = message;
+            if (timeout > 0) { clearTimeout(el._kampusTimeout); el._kampusTimeout = setTimeout(()=>{ try{ el.remove() }catch(e){} }, timeout) }
+        } catch (e) {}
+    }
     
     // Check if auto-login is enabled before proceeding
     async function checkAutoLoginEnabled() {
@@ -119,24 +134,25 @@
             return;
         }
         
-        console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
+    console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
+    showIndicator('Kampus Auto Login: starting...', '#643695', 3500);
         
         // First: try immediate presence of last-selected school
         const lastNow = document.querySelector('#selectedList > div > div.listItem > div');
         if (lastNow) {
             console.log('Kampus Auto Login: Found last selected school immediately, clicking it');
-            try { lastNow.click(); } catch (e) { console.error('Error clicking last selected', e); }
+            try { lastNow.click(); showIndicator('Kampus Auto Login: selecting school', '#28a745', 2400); } catch (e) { console.error('Error clicking last selected', e); }
             return;
         }
 
         // Wait for the last-selected school to appear (short timeout). If it appears, click and stop.
         const observedLast = await observeSelector('#selectedList > div > div.listItem > div', 5000);
-        if (observedLast) {
+            if (observedLast) {
             // Double-check auto-login setting before acting
             const stored = await chrome.storage.sync.get({ autoLoginEnabled: true });
             if (stored.autoLoginEnabled) {
-                console.log('Kampus Auto Login: Observed last selected school after wait, clicking');
-                try { observedLast.click(); } catch (e) { console.error('Error clicking observed element', e); }
+                    console.log('Kampus Auto Login: Observed last selected school after wait, clicking');
+                    try { observedLast.click(); showIndicator('Kampus Auto Login: selecting school', '#28a745', 2400); } catch (e) { console.error('Error clicking observed element', e); }
             } else {
                 console.log('Kampus Auto Login: Auto-login disabled; observed element will not be clicked');
             }
