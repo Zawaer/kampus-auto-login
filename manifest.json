@@ -12,8 +12,7 @@
     "*://kampus.sanomapro.fi/*",
     "*://kirjautuminen.sanomapro.fi/*",
     "*://mpass-proxy.csc.fi/*",
-    "*://sanomapro.fi/*",
-    "*://*.sanomapro.fi/*"
+    "*://sanomapro.fi/*"
   ],
   "action": {
     "default_popup": "popup.html",

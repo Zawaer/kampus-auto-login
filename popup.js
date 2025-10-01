@@ -28,25 +28,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             await chrome.storage.sync.set({
                 autoLoginEnabled: isEnabled
             });
-            // Notification removed: toggling no longer shows a tooltip/notification
-            
+                
         } catch (error) {
             console.error('Error saving settings:', error);
             // Revert toggle on error
             toggle.checked = !isEnabled;
         }
     }
-
-    // Status display removed; no updateStatus function.
-
-    // Current-site display removed; no updateCurrentSite function.
-
-    // Refresh functionality removed.
-
-    // The options/settings feature was removed from the popup UI.
-    // If you add a dedicated options page later, implement opening it here.
-
-    // showNotification removed: no visual tooltip/notification on toggle
 
     // Add keyboard support
     document.addEventListener('keydown', function(event) {
