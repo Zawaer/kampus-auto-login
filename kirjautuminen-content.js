@@ -20,53 +20,29 @@
     }
     
     function findAndClickMPASSButton() {
-        // Look for MPASSid button with various possible selectors
-        const selectors = [
-            'button[data-provider="mpassid"]',
-            'a[href*="mpass"]',
-            'button[onclick*="mpass"]',
-            'input[value*="mpass"]',
-            '.mpass-button',
-            '#mpass-login',
-            '[data-testid*="mpass"]',
-            'button[class*="mpass"]',
-            'a[class*="mpass"]'
-        ];
-        
-        for (let selector of selectors) {
-            const button = document.querySelector(selector);
-            if (button) {
-                console.log('Kampus Auto Login: Found MPASSid button with selector:', selector);
-                button.click();
-                return true;
+        // Use the specific CSS selector for the MPASSid button
+        const mpassButton = document.querySelector('#mpass > div.form-group > a > div');
+        if (mpassButton) {
+            console.log('Kampus Auto Login: Found MPASSid button with specific selector');
+            // Click the parent anchor element instead of the div
+            const anchorElement = mpassButton.closest('a');
+            if (anchorElement) {
+                anchorElement.click();
+            } else {
+                mpassButton.click();
             }
+            return true;
         }
         
-        // Look for buttons by text content
-        const buttons = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
-        for (let button of buttons) {
-            const text = (button.textContent || button.value || button.alt || '').toLowerCase();
-            if (text.includes('mpass') || 
-                text.includes('mp-tunnuksilla') || 
-                text.includes('opintopolku') ||
-                text.includes('koulutustoimija')) {
-                console.log('Kampus Auto Login: Found MPASSid button by text:', button.textContent || button.value);
-                button.click();
-                return true;
-            }
+        // Fallback: Look for the anchor element directly
+        const mpassAnchor = document.querySelector('#mpass > div.form-group > a');
+        if (mpassAnchor) {
+            console.log('Kampus Auto Login: Found MPASSid anchor element');
+            mpassAnchor.click();
+            return true;
         }
         
-        // Look for any form elements that might be related to MPASSid
-        const forms = document.querySelectorAll('form');
-        for (let form of forms) {
-            const action = form.action || '';
-            if (action.includes('mpass') || action.includes('csc.fi')) {
-                console.log('Kampus Auto Login: Found form with MPASSid action, submitting...');
-                form.submit();
-                return true;
-            }
-        }
-        
+        console.log('Kampus Auto Login: MPASSid button not found with specific selector');
         return false;
     }
     
