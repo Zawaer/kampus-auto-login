@@ -18,11 +18,11 @@
     "default_popup": "popup.html",
     "default_title": "Kampus Auto Login",
     "default_icon": {
-      "48": "icon48.ico"
+      "48": "icon48.png"
     }
   },
   "icons": {
-    "48": "icon48.ico"
+    "48": "icon48.png"
   },
   "content_scripts": [
     {
