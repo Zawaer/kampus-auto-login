@@ -5,6 +5,11 @@ This Chrome extension automates the login process for Kampus Sanoma Pro by autom
 1. Start at `kampus.sanomapro.fi` (automatically redirects to `kirjautuminen.sanomapro.fi`)
 2. Automatically clicks the MPASSid login button
 3. `mpass-proxy.csc.fi` → automatically continues to `sanomapro.fi`
+4. Open the Kampus in `kampus.sanomapro.fi` with automated clicks
+
+Demo video (because you can't really try it out without access to Sanoma Pro Kampus):
+
+https://github.com/user-attachments/assets/57f13908-639c-4317-8e72-133216f97c81
 
 <img width="491" height="675" alt="image" src="https://github.com/user-attachments/assets/f37dfcee-73f5-4db2-ac90-ba9218364fd1" />
 
@@ -12,19 +17,21 @@ This Chrome extension automates the login process for Kampus Sanoma Pro by autom
 
 ### Chrome
 
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable "Developer mode" in the top right corner
-3. Click "Load unpacked" button
-4. Select the folder containing this extension (`kampus-login`)
-5. The extension should now be installed and active
+1. Download the latest release and unzip it
+2. Open Chrome and navigate to `chrome://extensions/`
+3. Enable "Developer mode" in the top right corner
+4. Click "Load unpacked" button
+5. Select the folder containing this extension (`kampus-auto-login`)
+6. The extension should now be installed and active
 
 # Firefox
 
-1. Open Firefox and navigate to about:debugging (or about:debugging#/runtime/this-firefox).
-2. Click "This Firefox" in the sidebar.
-3. Click "Load Temporary Add-on...".
-4. In the file picker select this extension's `manifest.json` (or any file inside the `kampus-auto-login` folder).
-5. The extension will load temporarily and appear in the Extensions list; note that it will be removed when Firefox restarts.
+1. Download the latest release and unzip it
+2. Open Firefox and navigate to about:debugging (or about:debugging#/runtime/this-firefox).
+3. Click "This Firefox" in the sidebar.
+4. Click "Load Temporary Add-on...".
+5. In the file picker select this extension's `manifest.json` (or any file inside the `kampus-auto-login` folder).
+6. The extension will load temporarily and appear in the Extensions list; note that it will be removed when Firefox restarts.
 
 ## How it works
 
