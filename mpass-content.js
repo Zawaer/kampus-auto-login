@@ -3,6 +3,8 @@
 
 (function() {
     'use strict';
+
+    const extensionApi = globalThis.browser || globalThis.chrome;
     
     console.log('Kampus Auto Login: Running on mpass-proxy.csc.fi');
     // Visual indicator helper
@@ -24,7 +26,7 @@
     // Check if auto-login is enabled before proceeding
     async function checkAutoLoginEnabled() {
         try {
-            const result = await chrome.storage.sync.get({
+            const result = await extensionApi.storage.sync.get({
                 autoLoginEnabled: true // Default to enabled for backward compatibility
             });
             return result.autoLoginEnabled;
@@ -149,7 +151,7 @@
         const observedLast = await observeSelector('#selectedList > div > div.listItem > div', 5000);
             if (observedLast) {
             // Double-check auto-login setting before acting
-            const stored = await chrome.storage.sync.get({ autoLoginEnabled: true });
+            const stored = await extensionApi.storage.sync.get({ autoLoginEnabled: true });
             if (stored.autoLoginEnabled) {
                     console.log('Kampus Auto Login: Observed last selected school after wait, clicking');
                     try { observedLast.click(); showIndicator('Kampus Auto Login: selecting school', '#28a745', 2400); } catch (e) { console.error('Error clicking observed element', e); }

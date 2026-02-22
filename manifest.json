@@ -5,14 +5,14 @@
   "description": "Automate the login process for Sanoma Pro Kampus",
   "permissions": [
     "activeTab",
-    "scripting",
     "storage"
   ],
   "host_permissions": [
     "*://kampus.sanomapro.fi/*",
     "*://kirjautuminen.sanomapro.fi/*",
     "*://mpass-proxy.csc.fi/*",
-    "*://sanomapro.fi/*"
+    "*://sanomapro.fi/*",
+    "*://sts.edu.espoo.fi/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -39,6 +39,11 @@
     {
   "matches": ["*://sanomapro.fi/*", "*://*.sanomapro.fi/*"],
       "js": ["sanomapro-content.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["*://sts.edu.espoo.fi/adfs/ls/*"],
+      "js": ["adfs-content.js"],
       "run_at": "document_end"
     }
   ],

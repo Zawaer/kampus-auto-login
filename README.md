@@ -1,6 +1,6 @@
-# Kampus Auto Login Chrome Extension
+# Kampus Auto Login Browser Extension
 
-This Chrome extension automates the login process for Kampus Sanoma Pro by automatically navigating through the authentication flow:
+This extension automates the login process for Kampus Sanoma Pro by automatically navigating through the authentication flow:
 
 1. Start at `kampus.sanomapro.fi` (automatically redirects to `kirjautuminen.sanomapro.fi`)
 2. Automatically clicks the MPASSid login button
@@ -15,7 +15,7 @@ https://github.com/user-attachments/assets/57f13908-639c-4317-8e72-133216f97c81
 
 ## Installation
 
-### Chrome
+### Chrome / Chromium
 
 1. Download the latest release and unzip it
 2. Open Chrome and navigate to `chrome://extensions/`
@@ -24,10 +24,10 @@ https://github.com/user-attachments/assets/57f13908-639c-4317-8e72-133216f97c81
 5. Select the folder containing this extension (`kampus-auto-login`)
 6. The extension should now be installed and active
 
-# Firefox
+# Firefox / Zen Browser
 
 1. Download the latest release and unzip it
-2. Open Firefox and navigate to about:debugging (or about:debugging#/runtime/this-firefox).
+2. Open Firefox (or Zen) and navigate to about:debugging (or about:debugging#/runtime/this-firefox).
 3. Click "This Firefox" in the sidebar.
 4. Click "Load Temporary Add-on...".
 5. In the file picker select this extension's `manifest.json` (or any file inside the `kampus-auto-login` folder).
@@ -39,6 +39,8 @@ The extension uses content scripts that run on specific domains:
 
 - **kirjautuminen-content.js**: Automatically clicks the MPASSid login button on the login page
 - **mpass-content.js**: Automatically submits forms or clicks continue buttons on the MPASS proxy page
+- **adfs-content.js**: If redirected to `sts.edu.espoo.fi/adfs/ls/*`, waits for saved credentials to autofill and clicks the **Sign in** button automatically
+- **sanomapro-content.js**: On `sanomapro.fi`, redirects directly to `https://kampus.sanomapro.fi/`
 
 ## Security
 
