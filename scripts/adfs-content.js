@@ -23,7 +23,7 @@
                 ':host { all: initial; position: fixed; inset: 0; z-index: 2147483646; }',
                 '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }',
                 '.card { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 28px 40px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; }',
-                '.spinner { width: 28px; height: 28px; border: 3px solid rgba(0,0,0,0.12); border-top-color: #2563eb; border-radius: 50%; animation: kampus-spin 0.7s linear infinite; }',
+                '.spinner { width: 28px; height: 28px; border: 3px solid rgba(0,0,0,0.12); border-top-color: #643695; border-radius: 50%; animation: kampus-spin 0.7s linear infinite; }',
                 '.label { font-size: 15px; font-weight: 500; letter-spacing: 0.3px; }',
                 '@keyframes kampus-spin { to { transform: rotate(360deg); } }'
             ].join('\n');
