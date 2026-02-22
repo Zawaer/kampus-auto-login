@@ -7,21 +7,61 @@
     const extensionApi = globalThis.browser || globalThis.chrome;
     
     console.log('Kampus Auto Login: Running on kirjautuminen.sanomapro.fi');
-    // Visual indicator helper
+    // Visual overlay + centered popup indicator
     function showIndicator(message, bg = '#643695', timeout = 3500) {
         try {
-            const id = 'kampus-autologin-indicator';
-            let el = document.getElementById(id);
-            if (!el) {
-                el = document.createElement('div');
-                el.id = id;
-                Object.assign(el.style, {
-                    position: 'fixed',right: '12px',bottom: '12px',padding: '8px 12px',background: bg,color: '#fff',borderRadius: '6px',boxShadow: '0 4px 12px rgba(0,0,0,0.15)',zIndex: 2147483647,fontFamily: 'Segoe UI, Roboto, Arial, sans-serif',fontSize: '13px'
+            const overlayId = 'kampus-autologin-overlay';
+            const popupId = 'kampus-autologin-indicator';
+            let overlay = document.getElementById(overlayId);
+            let popup = document.getElementById(popupId);
+
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = overlayId;
+                Object.assign(overlay.style, {
+                    position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
+                    background: 'rgba(0, 0, 0, 0.35)', zIndex: '2147483646',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'opacity 0.2s ease'
                 });
-                document.documentElement.appendChild(el);
-            } else { el.style.background = bg }
-            el.textContent = message;
-            if (timeout > 0) { clearTimeout(el._kampusTimeout); el._kampusTimeout = setTimeout(()=>{ try{ el.remove() }catch(e){} }, timeout) }
+                document.documentElement.appendChild(overlay);
+            }
+
+            if (!popup) {
+                popup = document.createElement('div');
+                popup.id = popupId;
+                Object.assign(popup.style, {
+                    padding: '20px 32px', background: bg, color: '#fff',
+                    borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                    zIndex: '2147483647', fontFamily: 'Segoe UI, Roboto, Arial, sans-serif',
+                    fontSize: '15px', fontWeight: '500', textAlign: 'center',
+                    maxWidth: '320px', lineHeight: '1.4',
+                    animation: 'kampus-fadein 0.2s ease'
+                });
+                overlay.appendChild(popup);
+
+                // Inject keyframe animation if not already present
+                if (!document.getElementById('kampus-autologin-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'kampus-autologin-style';
+                    style.textContent = '@keyframes kampus-fadein { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }';
+                    document.head.appendChild(style);
+                }
+            } else {
+                popup.style.background = bg;
+            }
+
+            popup.textContent = message;
+
+            if (timeout > 0) {
+                clearTimeout(overlay._kampusTimeout);
+                overlay._kampusTimeout = setTimeout(() => {
+                    try {
+                        overlay.style.opacity = '0';
+                        setTimeout(() => { try { overlay.remove(); } catch (e) {} }, 250);
+                    } catch (e) {}
+                }, timeout);
+            }
         } catch (e) {}
     }
     
@@ -115,26 +155,55 @@
     function clickElement(element) {
         const target = findClickableAncestor(element);
         if (!target) {
+            console.warn('Kampus Auto Login: No clickable ancestor found');
             return false;
         }
 
         if (!isVisible(target)) {
+            console.warn('Kampus Auto Login: Target not visible');
             return false;
         }
+
+        console.log('Kampus Auto Login: Attempting click on', {
+            tag: target.tagName,
+            id: target.id || null,
+            href: target.getAttribute && target.getAttribute('href'),
+            text: normalizeText((target.textContent || '').slice(0, 80))
+        });
 
         try {
             target.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
         } catch (e) {}
 
+        // Strategy 1: Get topmost element and dispatch full event sequence
         try {
             const topmost = pickTopmostAtCenter(target);
-            dispatchUserClick(topmost || target);
+            const clickTarget = topmost || target;
+            console.log('Kampus Auto Login: Click target:', clickTarget.tagName, clickTarget.id || '(no id)');
+            dispatchUserClick(clickTarget);
+            
+            // Strategy 2: If target is an anchor with href, also navigate directly after a brief delay
+            if (target.tagName === 'A' && target.href) {
+                const targetHref = target.href;
+                console.log('Kampus Auto Login: Target is anchor, will navigate to:', targetHref);
+                setTimeout(() => {
+                    console.log('Kampus Auto Login: Executing direct navigation fallback to:', targetHref);
+                    try {
+                        window.location.href = targetHref;
+                    } catch (e) {
+                        console.error('Kampus Auto Login: Direct navigation failed', e);
+                    }
+                }, 400);
+            }
+            
             return true;
         } catch (error) {
+            console.error('Kampus Auto Login: Primary click failed', error);
             try {
                 target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
                 return true;
             } catch (dispatchError) {
+                console.error('Kampus Auto Login: Fallback click also failed', dispatchError);
                 return false;
             }
         }
@@ -190,14 +259,18 @@
         const mpassButton = document.querySelector('#mpass > div.form-group > a > div');
         if (mpassButton) {
             console.log('Kampus Auto Login: Found MPASSid button with specific selector');
-            return clickElement(mpassButton);
+            const result = clickElement(mpassButton);
+            console.log('Kampus Auto Login: Click result:', result);
+            return result;
         }
         
         // Fallback: Look for the anchor element directly
         const mpassAnchor = document.querySelector('#mpass > div.form-group > a');
         if (mpassAnchor) {
             console.log('Kampus Auto Login: Found MPASSid anchor element');
-            return clickElement(mpassAnchor);
+            const result = clickElement(mpassAnchor);
+            console.log('Kampus Auto Login: Click result:', result);
+            return result;
         }
 
         // Firefox/Zen fallback: locate element by visible text
@@ -209,7 +282,9 @@
                 className: mpassByText.className || null,
                 text: normalizeText((mpassByText.textContent || '').slice(0, 120))
             });
-            return clickElement(mpassByText);
+            const result = clickElement(mpassByText);
+            console.log('Kampus Auto Login: Click result:', result);
+            return result;
         }
         
         console.log('Kampus Auto Login: MPASSid button not found with specific selector');
@@ -237,6 +312,7 @@
         
         // Try immediately
         if (findAndClickMPASSButton()) {
+            showIndicator('Kampus Auto Login: clicked MPASS', '#28a745', 2500);
             return;
         }
         

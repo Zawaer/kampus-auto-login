@@ -3,7 +3,7 @@
 
     const extensionApi = globalThis.browser || globalThis.chrome;
     const kampusDirectUrl = 'https://kampus.sanomapro.fi/';
-    console.log('Kampus Auto Login: Running on sanomapro.fi (direct redirect mode)');
+    console.log('Kampus Auto Login: Running on sanomapro.fi');
 
     async function autoLoginEnabled() {
         try {

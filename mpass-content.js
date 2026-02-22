@@ -7,19 +7,60 @@
     const extensionApi = globalThis.browser || globalThis.chrome;
     
     console.log('Kampus Auto Login: Running on mpass-proxy.csc.fi');
-    // Visual indicator helper
+    // Visual overlay + centered popup indicator
     function showIndicator(message, bg = '#643695', timeout = 3500) {
         try {
-            const id = 'kampus-autologin-indicator';
-            let el = document.getElementById(id);
-            if (!el) {
-                el = document.createElement('div');
-                el.id = id;
-                Object.assign(el.style, {position:'fixed',right:'12px',bottom:'12px',padding:'8px 12px',background:bg,color:'#fff',borderRadius:'6px',boxShadow:'0 4px 12px rgba(0,0,0,0.15)',zIndex:2147483647,fontFamily:'Segoe UI, Roboto, Arial, sans-serif',fontSize:'13px'});
-                document.documentElement.appendChild(el);
-            } else { el.style.background = bg }
-            el.textContent = message;
-            if (timeout > 0) { clearTimeout(el._kampusTimeout); el._kampusTimeout = setTimeout(()=>{ try{ el.remove() }catch(e){} }, timeout) }
+            const overlayId = 'kampus-autologin-overlay';
+            const popupId = 'kampus-autologin-indicator';
+            let overlay = document.getElementById(overlayId);
+            let popup = document.getElementById(popupId);
+
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = overlayId;
+                Object.assign(overlay.style, {
+                    position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
+                    background: 'rgba(0, 0, 0, 0.35)', zIndex: '2147483646',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'opacity 0.2s ease'
+                });
+                document.documentElement.appendChild(overlay);
+            }
+
+            if (!popup) {
+                popup = document.createElement('div');
+                popup.id = popupId;
+                Object.assign(popup.style, {
+                    padding: '20px 32px', background: bg, color: '#fff',
+                    borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                    zIndex: '2147483647', fontFamily: 'Segoe UI, Roboto, Arial, sans-serif',
+                    fontSize: '15px', fontWeight: '500', textAlign: 'center',
+                    maxWidth: '320px', lineHeight: '1.4',
+                    animation: 'kampus-fadein 0.2s ease'
+                });
+                overlay.appendChild(popup);
+
+                if (!document.getElementById('kampus-autologin-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'kampus-autologin-style';
+                    style.textContent = '@keyframes kampus-fadein { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }';
+                    document.head.appendChild(style);
+                }
+            } else {
+                popup.style.background = bg;
+            }
+
+            popup.textContent = message;
+
+            if (timeout > 0) {
+                clearTimeout(overlay._kampusTimeout);
+                overlay._kampusTimeout = setTimeout(() => {
+                    try {
+                        overlay.style.opacity = '0';
+                        setTimeout(() => { try { overlay.remove(); } catch (e) {} }, 250);
+                    } catch (e) {}
+                }, timeout);
+            }
         } catch (e) {}
     }
     
