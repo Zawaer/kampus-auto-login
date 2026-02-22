@@ -1,5 +1,7 @@
 // Popup JavaScript for Kampus Auto Login Extension
 
+const extensionApi = globalThis.browser || globalThis.chrome;
+
 document.addEventListener('DOMContentLoaded', async function() {
     const toggle = document.getElementById('autoLoginToggle');
     // No status or current site elements; popup only has the toggle now.
@@ -10,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     async function loadSettings() {
         try {
-            const result = await chrome.storage.sync.get({
+            const result = await extensionApi.storage.sync.get({
                 autoLoginEnabled: true // Default to enabled
             });
 
@@ -25,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const isEnabled = toggle.checked;
         
         try {
-            await chrome.storage.sync.set({
+            await extensionApi.storage.sync.set({
                 autoLoginEnabled: isEnabled
             });
                 
@@ -49,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 // Background script communication (if needed in the future)
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+extensionApi.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'updateStatus') {
         // Handle status updates from content scripts
         console.log('Status update from content script:', request.data);
