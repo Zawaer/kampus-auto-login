@@ -7,60 +7,45 @@
     const extensionApi = globalThis.browser || globalThis.chrome;
     
     console.log('Kampus Auto Login: Running on mpass-proxy.csc.fi');
-    // Visual overlay + centered popup indicator
-    function showIndicator(message, bg = '#643695', timeout = 3500) {
+    // Show a full-screen "Logging in..." overlay with spinner (Shadow DOM to avoid page CSS)
+    function showLoginOverlay() {
         try {
-            const overlayId = 'kampus-autologin-overlay';
-            const popupId = 'kampus-autologin-indicator';
-            let overlay = document.getElementById(overlayId);
-            let popup = document.getElementById(popupId);
+            if (document.getElementById('kampus-autologin-overlay')) return;
 
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.id = overlayId;
-                Object.assign(overlay.style, {
-                    position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
-                    background: 'rgba(0, 0, 0, 0.35)', zIndex: '2147483646',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'opacity 0.2s ease'
-                });
-                document.documentElement.appendChild(overlay);
-            }
+            const overlay = document.createElement('div');
+            overlay.id = 'kampus-autologin-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.inset = '0';
+            overlay.style.zIndex = '2147483646';
 
-            if (!popup) {
-                popup = document.createElement('div');
-                popup.id = popupId;
-                Object.assign(popup.style, {
-                    padding: '20px 32px', background: bg, color: '#fff',
-                    borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                    zIndex: '2147483647', fontFamily: 'Segoe UI, Roboto, Arial, sans-serif',
-                    fontSize: '15px', fontWeight: '500', textAlign: 'center',
-                    maxWidth: '320px', lineHeight: '1.4',
-                    animation: 'kampus-fadein 0.2s ease'
-                });
-                overlay.appendChild(popup);
+            const shadowRoot = overlay.attachShadow({ mode: 'open' });
+            const style = document.createElement('style');
+            style.textContent = [
+                ':host { all: initial; position: fixed; inset: 0; z-index: 2147483646; }',
+                '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }',
+                '.card { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 28px 40px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; }',
+                '.spinner { width: 28px; height: 28px; border: 3px solid rgba(0,0,0,0.12); border-top-color: #2563eb; border-radius: 50%; animation: kampus-spin 0.7s linear infinite; }',
+                '.label { font-size: 15px; font-weight: 500; letter-spacing: 0.3px; }',
+                '@keyframes kampus-spin { to { transform: rotate(360deg); } }'
+            ].join('\n');
 
-                if (!document.getElementById('kampus-autologin-style')) {
-                    const style = document.createElement('style');
-                    style.id = 'kampus-autologin-style';
-                    style.textContent = '@keyframes kampus-fadein { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }';
-                    document.head.appendChild(style);
-                }
-            } else {
-                popup.style.background = bg;
-            }
+            const overlayWrap = document.createElement('div');
+            overlayWrap.className = 'overlay';
+            const card = document.createElement('div');
+            card.className = 'card';
+            const spinner = document.createElement('div');
+            spinner.className = 'spinner';
+            const label = document.createElement('div');
+            label.className = 'label';
+            label.textContent = 'Logging in...';
 
-            popup.textContent = message;
+            card.appendChild(spinner);
+            card.appendChild(label);
+            overlayWrap.appendChild(card);
+            shadowRoot.appendChild(style);
+            shadowRoot.appendChild(overlayWrap);
 
-            if (timeout > 0) {
-                clearTimeout(overlay._kampusTimeout);
-                overlay._kampusTimeout = setTimeout(() => {
-                    try {
-                        overlay.style.opacity = '0';
-                        setTimeout(() => { try { overlay.remove(); } catch (e) {} }, 250);
-                    } catch (e) {}
-                }, timeout);
-            }
+            document.documentElement.appendChild(overlay);
         } catch (e) {}
     }
     
@@ -122,9 +107,28 @@
             // Check if we haven't already filled the search
             if (!searchInput.value || searchInput.value.toLowerCase() !== 'otaniem') {
                 console.log('Kampus Auto Login: Filling search input with "Otaniem"');
-                searchInput.value = 'Otaniem';
-                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-                searchInput.dispatchEvent(new Event('change', { bubbles: true }));
+                
+                // Simulate realistic user interaction to trigger search interface
+                try {
+                    searchInput.focus();
+                    searchInput.click();
+                    searchInput.value = '';
+                    
+                    // Type each character with events to trigger autocomplete/search
+                    const searchText = 'Otaniem';
+                    for (let i = 0; i < searchText.length; i++) {
+                        searchInput.value = searchText.substring(0, i + 1);
+                        searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: searchText[i], bubbles: true }));
+                        searchInput.dispatchEvent(new KeyboardEvent('keypress', { key: searchText[i], bubbles: true }));
+                        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: searchText[i], bubbles: true }));
+                    }
+                    
+                    searchInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    searchInput.dispatchEvent(new Event('blur', { bubbles: true }));
+                } catch (e) {
+                    console.warn('Kampus Auto Login: Error during search input simulation', e);
+                }
 
                 // Return the searching state; the wait handler will observe the actual result element
                 return 'searching_school';
@@ -178,13 +182,13 @@
         }
         
     console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
-    showIndicator('Kampus Auto Login: starting...', '#643695', 3500);
+    showLoginOverlay();
         
         // First: try immediate presence of last-selected school
         const lastNow = document.querySelector('#selectedList > div > div.listItem > div');
         if (lastNow) {
             console.log('Kampus Auto Login: Found last selected school immediately, clicking it');
-            try { lastNow.click(); showIndicator('Kampus Auto Login: selecting school', '#28a745', 2400); } catch (e) { console.error('Error clicking last selected', e); }
+            try { lastNow.click(); } catch (e) { console.error('Error clicking last selected', e); }
             return;
         }
 
@@ -195,7 +199,7 @@
             const stored = await extensionApi.storage.sync.get({ autoLoginEnabled: true });
             if (stored.autoLoginEnabled) {
                     console.log('Kampus Auto Login: Observed last selected school after wait, clicking');
-                    try { observedLast.click(); showIndicator('Kampus Auto Login: selecting school', '#28a745', 2400); } catch (e) { console.error('Error clicking observed element', e); }
+                    try { observedLast.click(); } catch (e) { console.error('Error clicking observed element', e); }
             } else {
                 console.log('Kampus Auto Login: Auto-login disabled; observed element will not be clicked');
             }
@@ -218,10 +222,55 @@
         if (result === 'searching_school') {
             console.log('Kampus Auto Login: Initiated school search, waiting for completion...');
 
-            // Observe for the search result item and click when it appears
-            observeSelector('#item-151', 10000).then((el) => {
+            // First, wait a bit for the search interface to open and results to load
+            await new Promise(r => setTimeout(r, 800));
+
+            // Try to find the school by ID or by text content
+            const findSchool = () => {
+                const byId = document.querySelector('#item-151');
+                if (byId) {
+                    console.log('Kampus Auto Login: Found school by ID #item-151');
+                    return byId;
+                }
+
+                // Fallback: search by text content
+                const items = document.querySelectorAll('[id^="item-"], .listItem, .schoolItem, li, div[role="option"]');
+                console.log('Kampus Auto Login: Searching through', items.length, 'potential school items');
+                for (const item of items) {
+                    const text = (item.textContent || '').toLowerCase();
+                    if (text.includes('otaniemen lukio') || text.includes('otaniemi')) {
+                        console.log('Kampus Auto Login: Found school by text:', item.textContent.trim().slice(0, 80));
+                        return item;
+                    }
+                }
+                return null;
+            };
+
+            // Try immediate search first
+            let schoolItem = findSchool();
+            if (schoolItem) {
+                console.log('Kampus Auto Login: School found immediately after wait');
+                schoolItem.click();
+                setTimeout(() => {
+                    const cb = document.querySelector('#continueButton');
+                    if (cb) {
+                        console.log('Kampus Auto Login: Clicking continue button after selecting school');
+                        cb.click();
+                    }
+                }, 300);
+                return;
+            }
+
+            // If not found immediately, observe for it to appear
+            console.log('Kampus Auto Login: School not found immediately, observing for it to appear...');
+            observeSelector('#item-151', 12000).then(async (el) => {
+                if (!el) {
+                    console.log('Kampus Auto Login: #item-151 did not appear via observer, trying text-based search');
+                    el = findSchool();
+                }
+
                 if (el) {
-                    console.log('Kampus Auto Login: Detected #item-151 via observer, clicking it');
+                    console.log('Kampus Auto Login: Found school item, clicking it');
                     el.click();
                     setTimeout(() => {
                         const cb = document.querySelector('#continueButton');
@@ -233,7 +282,8 @@
                         }
                     }, 300);
                 } else {
-                    console.log('Kampus Auto Login: #item-151 did not appear within timeout');
+                    console.log('Kampus Auto Login: School item not found after search and fallback attempts');
+                    console.log('Kampus Auto Login: Available elements on page:', document.querySelectorAll('[id^="item-"], .listItem').length);
                 }
             });
 
