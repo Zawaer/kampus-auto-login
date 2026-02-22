@@ -4,22 +4,20 @@ const extensionApi = globalThis.browser || globalThis.chrome;
 
 document.addEventListener('DOMContentLoaded', async function() {
     const toggle = document.getElementById('autoLoginToggle');
-    // No status or current site elements; popup only has the toggle now.
 
-    // Load saved settings and set up listeners
     await loadSettings();
     toggle.addEventListener('change', handleToggleChange);
 
     async function loadSettings() {
         try {
             const result = await extensionApi.storage.sync.get({
-                autoLoginEnabled: true // Default to enabled
+                autoLoginEnabled: true
             });
 
             toggle.checked = result.autoLoginEnabled;
         } catch (error) {
             console.error('Error loading settings:', error);
-            toggle.checked = true; // Default fallback
+            toggle.checked = true;
         }
     }
 
@@ -30,10 +28,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             await extensionApi.storage.sync.set({
                 autoLoginEnabled: isEnabled
             });
-                
         } catch (error) {
             console.error('Error saving settings:', error);
-            // Revert toggle on error
             toggle.checked = !isEnabled;
         }
     }
@@ -50,10 +46,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
 });
 
-// Background script communication (if needed in the future)
 extensionApi.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'updateStatus') {
-        // Handle status updates from content scripts
         console.log('Status update from content script:', request.data);
     }
 });

@@ -7,6 +7,7 @@
     const extensionApi = globalThis.browser || globalThis.chrome;
     
     console.log('Kampus Auto Login: Running on mpass-proxy.csc.fi');
+
     // Show a full-screen "Logging in..." overlay with spinner (Shadow DOM to avoid page CSS)
     function showLoginOverlay() {
         try {
@@ -53,14 +54,15 @@
     async function checkAutoLoginEnabled() {
         try {
             const result = await extensionApi.storage.sync.get({
-                autoLoginEnabled: true // Default to enabled for backward compatibility
+                autoLoginEnabled: true
             });
             return result.autoLoginEnabled;
         } catch (error) {
             console.error('Kampus Auto Login: Error checking settings:', error);
-            return true; // Default to enabled if there's an error
+            return true;
         }
     }
+
     // Helper: observe for a selector to appear in the DOM and resolve with the element (or null on timeout)
     function observeSelector(selector, timeout = 10000) {
         return new Promise((resolve) => {
@@ -104,17 +106,15 @@
         if (searchInput) {
             console.log('Kampus Auto Login: Found search input, looking for Otaniemen lukio');
 
-            // Check if we haven't already filled the search
             if (!searchInput.value || searchInput.value.toLowerCase() !== 'otaniem') {
                 console.log('Kampus Auto Login: Filling search input with "Otaniem"');
                 
-                // Simulate realistic user interaction to trigger search interface
                 try {
                     searchInput.focus();
                     searchInput.click();
                     searchInput.value = '';
                     
-                    // Type each character with events to trigger autocomplete/search
+                    // Simulate realistic user interaction to trigger search interface
                     const searchText = 'Otaniem';
                     for (let i = 0; i < searchText.length; i++) {
                         searchInput.value = searchText.substring(0, i + 1);
@@ -130,11 +130,9 @@
                     console.warn('Kampus Auto Login: Error during search input simulation', e);
                 }
 
-                // Return the searching state; the wait handler will observe the actual result element
                 return 'searching_school';
             }
 
-            // If search is already filled, try to click the item and continue button
             const otaniemiItem = document.querySelector('#item-151');
             const continueButton = document.querySelector('#continueButton');
 
@@ -148,8 +146,7 @@
             }
         }
 
-        // State 3: Check if page is automatically redirecting (no action needed)
-        // Look for signs that an automatic redirect is happening
+        // State 3: Check if page is automatically redirecting
         const scriptTags = document.querySelectorAll('script');
         for (let script of scriptTags) {
             if (script.textContent && 
@@ -161,18 +158,16 @@
             }
         }
 
-        // Check for meta refresh
         const metaRefresh = document.querySelector('meta[http-equiv="refresh"]');
         if (metaRefresh) {
             console.log('Kampus Auto Login: Detected meta refresh, waiting for automatic redirect...');
             return 'auto_redirecting';
         }
 
-        console.log('Kampus Auto Login: No recognizable state found on mpass-proxy page');
         return 'unknown_state';
     }
 
-    function isKampusFlow() {
+    async function isKampusFlow() {
         const allowedHosts = [
             'sanomapro.fi',
             'kampus.sanomapro.fi',
@@ -197,11 +192,19 @@
             }
         } catch (e) {}
 
+        // Fallback: accept if a recent Kampus flow flag was set on kirjautuminen
+        try {
+            const { kampusFlowStartedAt } = await extensionApi.storage.local.get({ kampusFlowStartedAt: 0 });
+            const maxAgeMs = 10 * 60 * 1000;
+            if (kampusFlowStartedAt && (Date.now() - kampusFlowStartedAt) < maxAgeMs) {
+                return true;
+            }
+        } catch (e) {}
+
         return false;
     }
     
     async function waitAndTryClick() {
-        // Check if auto-login is enabled first
         const isEnabled = await checkAutoLoginEnabled();
         
         if (!isEnabled) {
@@ -209,13 +212,13 @@
             return;
         }
 
-        if (!isKampusFlow()) {
+        if (!await isKampusFlow()) {
             console.log('Kampus Auto Login: MPASS page not related to Kampus flow, skipping');
             return;
         }
         
-    console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
-    showLoginOverlay();
+        console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
+        showLoginOverlay();
         
         // First: try immediate presence of last-selected school
         const lastNow = document.querySelector('#selectedList > div > div.listItem > div');
@@ -226,13 +229,12 @@
         }
 
         // Wait for the last-selected school to appear (short timeout). If it appears, click and stop.
-        const observedLast = await observeSelector('#selectedList > div > div.listItem > div', 5000);
-            if (observedLast) {
-            // Double-check auto-login setting before acting
+        const observedLast = await observeSelector('#selectedList > div > div.listItem > div', 3000);
+        if (observedLast) {
             const stored = await extensionApi.storage.sync.get({ autoLoginEnabled: true });
             if (stored.autoLoginEnabled) {
-                    console.log('Kampus Auto Login: Observed last selected school after wait, clicking');
-                    try { observedLast.click(); } catch (e) { console.error('Error clicking observed element', e); }
+                console.log('Kampus Auto Login: Observed last selected school after wait, clicking');
+                try { observedLast.click(); } catch (e) { console.error('Error clicking observed element', e); }
             } else {
                 console.log('Kampus Auto Login: Auto-login disabled; observed element will not be clicked');
             }
@@ -262,17 +264,14 @@
             const findSchool = () => {
                 const byId = document.querySelector('#item-151');
                 if (byId) {
-                    console.log('Kampus Auto Login: Found school by ID #item-151');
                     return byId;
                 }
 
                 // Fallback: search by text content
                 const items = document.querySelectorAll('[id^="item-"], .listItem, .schoolItem, li, div[role="option"]');
-                console.log('Kampus Auto Login: Searching through', items.length, 'potential school items');
                 for (const item of items) {
                     const text = (item.textContent || '').toLowerCase();
                     if (text.includes('otaniemen lukio') || text.includes('otaniemi')) {
-                        console.log('Kampus Auto Login: Found school by text:', item.textContent.trim().slice(0, 80));
                         return item;
                     }
                 }
@@ -282,12 +281,12 @@
             // Try immediate search first
             let schoolItem = findSchool();
             if (schoolItem) {
-                console.log('Kampus Auto Login: School found immediately after wait');
+                console.log('Kampus Auto Login: School found, clicking it');
                 schoolItem.click();
                 setTimeout(() => {
                     const cb = document.querySelector('#continueButton');
                     if (cb) {
-                        console.log('Kampus Auto Login: Clicking continue button after selecting school');
+                        console.log('Kampus Auto Login: Clicking continue button');
                         cb.click();
                     }
                 }, 300);
@@ -308,15 +307,12 @@
                     setTimeout(() => {
                         const cb = document.querySelector('#continueButton');
                         if (cb) {
-                            console.log('Kampus Auto Login: Clicking continue button after selecting school');
+                            console.log('Kampus Auto Login: Clicking continue button');
                             cb.click();
-                        } else {
-                            console.log('Kampus Auto Login: Continue button not found after selecting school');
                         }
                     }, 300);
                 } else {
                     console.log('Kampus Auto Login: School item not found after search and fallback attempts');
-                    console.log('Kampus Auto Login: Available elements on page:', document.querySelectorAll('[id^="item-"], .listItem').length);
                 }
             });
 
@@ -329,25 +325,17 @@
             const maxAttempts = 10;
             const interval = setInterval(() => {
                 attempts++;
-                console.log(`Kampus Auto Login: Attempt ${attempts} to handle mpass-proxy state`);
 
                 const retryResult = handleMPassProxyStates();
                 if (retryResult !== 'unknown_state' || attempts >= maxAttempts) {
                     clearInterval(interval);
                     if (attempts >= maxAttempts) {
                         console.log('Kampus Auto Login: Could not handle mpass-proxy state after', maxAttempts, 'attempts');
-
-                        // Log available elements for debugging
-                        console.log('Kampus Auto Login: Page structure:');
-                        console.log('- Selected list element:', document.querySelector('#selectedList'));
-                        console.log('- Search input element:', document.querySelector('#searchschoolterm'));
-                        console.log('- Otaniemi item element:', document.querySelector('#item-151'));
-                        console.log('- Continue button element:', document.querySelector('#continueButton'));
                     } else {
                         console.log('Kampus Auto Login: Successfully handled state on retry:', retryResult);
                     }
                 }
-            }, 1500); // Longer interval for mpass-proxy states
+            }, 1500);
         }
     }
     
@@ -357,7 +345,6 @@
         return;
     }
     
-    // Run when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', waitAndTryClick);
     } else {

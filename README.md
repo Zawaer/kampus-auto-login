@@ -5,7 +5,7 @@ This extension automates the login process for Kampus Sanoma Pro by automaticall
 1. Start at `kampus.sanomapro.fi` (automatically redirects to `kirjautuminen.sanomapro.fi`)
 2. Automatically clicks the MPASSid login button
 3. `mpass-proxy.csc.fi` → automatically continues to `sanomapro.fi`
-4. Open the Kampus in `kampus.sanomapro.fi` with automated clicks
+4. On the `sanomapro.fi` landing page, redirects directly to `https://kampus.sanomapro.fi/`
 
 Demo video (because you can't really try it out without access to Sanoma Pro Kampus):
 
@@ -38,13 +38,15 @@ https://github.com/user-attachments/assets/57f13908-639c-4317-8e72-133216f97c81
 The extension uses content scripts that run on specific domains:
 
 - **kirjautuminen-content.js**: Automatically clicks the MPASSid login button on the login page
-- **mpass-content.js**: Automatically submits forms or clicks continue buttons on the MPASS proxy page
-- **adfs-content.js**: If redirected to `sts.edu.espoo.fi/adfs/ls/*`, waits for saved credentials to autofill and clicks the **Sign in** button automatically
-- **sanomapro-content.js**: On `sanomapro.fi`, redirects directly to `https://kampus.sanomapro.fi/`
+- **mpass-content.js**: Handles the MPASS proxy flow, limited to Kampus/Sanoma Pro redirects
+- **adfs-content.js**: Only auto-signs in on ADFS pages when the flow originates from Kampus/Sanoma Pro
+- **sanomapro-content.js**: Redirects only on the `sanomapro.fi` root landing page (not subpages)
+
+During the flow the extension shows a full-screen overlay with a subtle spinner and the text "Logging in..." so you can tell the automation is running.
 
 ## Security
 
-- This extension only runs on the specified Sanoma Pro and MPASSid domains
+- This extension only runs on the specified Sanoma Pro and MPASSid domains and ignores unrelated MPASS/ADFS flows
 - It doesn't store any personal information or credentials
 - It only automates clicking buttons that you would normally click manually
 
