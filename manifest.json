@@ -15,7 +15,7 @@
     "*://sts.edu.espoo.fi/*"
   ],
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "ui/popup.html",
     "default_title": "Kampus Auto Login",
     "default_icon": {
       "48": "icon48.png"
@@ -27,23 +27,22 @@
   "content_scripts": [
     {
       "matches": ["*://kirjautuminen.sanomapro.fi/*"],
-      "js": ["kirjautuminen-content.js"],
+      "js": ["scripts/kirjautuminen-content.js"],
       "run_at": "document_end"
     },
     {
       "matches": ["*://mpass-proxy.csc.fi/*"],
-      "js": ["mpass-content.js"],
+      "js": ["scripts/mpass-content.js"],
       "run_at": "document_end"
-    }
-    ,
+    },
     {
-  "matches": ["*://sanomapro.fi/*", "*://*.sanomapro.fi/*"],
-      "js": ["sanomapro-content.js"],
+      "matches": ["*://sanomapro.fi/*", "*://*.sanomapro.fi/*"],
+      "js": ["scripts/sanomapro-content.js"],
       "run_at": "document_end"
     },
     {
       "matches": ["*://sts.edu.espoo.fi/adfs/ls/*"],
-      "js": ["adfs-content.js"],
+      "js": ["scripts/adfs-content.js"],
       "run_at": "document_end"
     }
   ],

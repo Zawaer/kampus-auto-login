@@ -1,3 +1,6 @@
+// Content script for sanomapro.fi
+// Redirects to kampus.sanomapro.fi on the root path
+
 (function(){
     'use strict';
 
@@ -85,7 +88,6 @@
         console.log('Kampus Auto Login: Host does not require sanomapro redirect');
     }
 
-    // Run when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', runSanomaProRedirect);
     } else {

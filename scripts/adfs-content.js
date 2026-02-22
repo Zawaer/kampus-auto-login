@@ -150,7 +150,7 @@
 
         showLoginOverlay();
 
-        // Give password managers a moment to autofill fields.
+        // Give password managers a moment to autofill fields
         await new Promise((resolve) => setTimeout(resolve, 900));
 
         if (credentialsLikelyFilled()) {

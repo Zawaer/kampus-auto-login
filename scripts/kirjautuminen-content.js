@@ -7,6 +7,7 @@
     const extensionApi = globalThis.browser || globalThis.chrome;
     
     console.log('Kampus Auto Login: Running on kirjautuminen.sanomapro.fi');
+
     // Show a full-screen "Logging in..." overlay with spinner (Shadow DOM to avoid page CSS)
     function showLoginOverlay() {
         try {
@@ -64,12 +65,12 @@
     async function checkAutoLoginEnabled() {
         try {
             const result = await extensionApi.storage.sync.get({
-                autoLoginEnabled: true // Default to enabled for backward compatibility
+                autoLoginEnabled: true
             });
             return result.autoLoginEnabled;
         } catch (error) {
             console.error('Kampus Auto Login: Error checking settings:', error);
-            return true; // Default to enabled if there's an error
+            return true;
         }
     }
 
@@ -159,46 +160,34 @@
             return false;
         }
 
-        console.log('Kampus Auto Login: Attempting click on', {
-            tag: target.tagName,
-            id: target.id || null,
-            href: target.getAttribute && target.getAttribute('href'),
-            text: normalizeText((target.textContent || '').slice(0, 80))
-        });
-
         try {
             target.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
         } catch (e) {}
 
-        // Strategy 1: Get topmost element and dispatch full event sequence
         try {
             const topmost = pickTopmostAtCenter(target);
             const clickTarget = topmost || target;
-            console.log('Kampus Auto Login: Click target:', clickTarget.tagName, clickTarget.id || '(no id)');
             dispatchUserClick(clickTarget);
             
-            // Strategy 2: If target is an anchor with href, also navigate directly after a brief delay
             if (target.tagName === 'A' && target.href) {
                 const targetHref = target.href;
-                console.log('Kampus Auto Login: Target is anchor, will navigate to:', targetHref);
                 setTimeout(() => {
-                    console.log('Kampus Auto Login: Executing direct navigation fallback to:', targetHref);
                     try {
                         window.location.href = targetHref;
                     } catch (e) {
-                        console.error('Kampus Auto Login: Direct navigation failed', e);
+                        console.error('Kampus Auto Login: Navigation failed', e);
                     }
                 }, 400);
             }
             
             return true;
         } catch (error) {
-            console.error('Kampus Auto Login: Primary click failed', error);
+            console.error('Kampus Auto Login: Click failed', error);
             try {
                 target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
                 return true;
             } catch (dispatchError) {
-                console.error('Kampus Auto Login: Fallback click also failed', dispatchError);
+                console.error('Kampus Auto Login: Fallback click failed', dispatchError);
                 return false;
             }
         }
@@ -230,19 +219,12 @@
             if (isLikelyContainer(clickable)) score -= 100;
 
             if (score > 0) {
-                ranked.push({ element: clickable, score, text: text.slice(0, 160) });
+                ranked.push({ element: clickable, score });
             }
         }
 
         ranked.sort((a, b) => b.score - a.score);
         if (ranked.length > 0) {
-            console.log('Kampus Auto Login: MPASS ranked candidates', ranked.slice(0, 3).map((item) => ({
-                tag: item.element.tagName,
-                id: item.element.id || null,
-                className: item.element.className || null,
-                score: item.score,
-                text: item.text
-            })));
             return ranked[0].element;
         }
 
@@ -250,39 +232,21 @@
     }
     
     function findAndClickMPASSButton() {
-        // Use the specific CSS selector for the MPASSid button
         const mpassButton = document.querySelector('#mpass > div.form-group > a > div');
         if (mpassButton) {
-            console.log('Kampus Auto Login: Found MPASSid button with specific selector');
-            const result = clickElement(mpassButton);
-            console.log('Kampus Auto Login: Click result:', result);
-            return result;
+            return clickElement(mpassButton);
         }
         
-        // Fallback: Look for the anchor element directly
         const mpassAnchor = document.querySelector('#mpass > div.form-group > a');
         if (mpassAnchor) {
-            console.log('Kampus Auto Login: Found MPASSid anchor element');
-            const result = clickElement(mpassAnchor);
-            console.log('Kampus Auto Login: Click result:', result);
-            return result;
+            return clickElement(mpassAnchor);
         }
 
-        // Firefox/Zen fallback: locate element by visible text
         const mpassByText = findMPASSElementByText();
         if (mpassByText) {
-            console.log('Kampus Auto Login: Found MPASSid button by text', {
-                tag: mpassByText.tagName,
-                id: mpassByText.id || null,
-                className: mpassByText.className || null,
-                text: normalizeText((mpassByText.textContent || '').slice(0, 120))
-            });
-            const result = clickElement(mpassByText);
-            console.log('Kampus Auto Login: Click result:', result);
-            return result;
+            return clickElement(mpassByText);
         }
         
-        console.log('Kampus Auto Login: MPASSid button not found with specific selector');
         return false;
     }
     
@@ -294,46 +258,41 @@
             return;
         }
 
-        // Check if auto-login is enabled first
         const isEnabled = await checkAutoLoginEnabled();
         
         if (!isEnabled) {
             console.log('Kampus Auto Login: Auto-login is disabled, skipping automation');
             return;
         }
+
+        // Mark a short-lived Kampus flow so mpass-proxy can allow automation
+        try {
+            await extensionApi.storage.local.set({ kampusFlowStartedAt: Date.now() });
+        } catch (e) {
+            console.warn('Kampus Auto Login: Failed to store Kampus flow flag', e);
+        }
         
-    console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
-    showLoginOverlay();
+        console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
+        showLoginOverlay();
         
-        // Try immediately
         if (findAndClickMPASSButton()) {
             return;
         }
         
-        // If not found, wait a bit for dynamic content to load
         let attempts = 0;
         const maxAttempts = 10;
         const interval = setInterval(() => {
             attempts++;
-            console.log(`Kampus Auto Login: Attempt ${attempts} to find MPASSid button`);
             
             if (findAndClickMPASSButton() || attempts >= maxAttempts) {
                 clearInterval(interval);
                 if (attempts >= maxAttempts) {
                     console.log('Kampus Auto Login: Could not find MPASSid button after', maxAttempts, 'attempts');
-                    
-                    // Log all available buttons for debugging
-                    const allButtons = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
-                    console.log('Kampus Auto Login: Available buttons on page:');
-                    allButtons.forEach((btn, index) => {
-                        console.log(`${index + 1}:`, btn.textContent || btn.value || btn.outerHTML);
-                    });
                 }
             }
         }, 1000);
     }
     
-    // Run when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', waitAndTryClick);
     } else {
