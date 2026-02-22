@@ -171,6 +171,34 @@
         console.log('Kampus Auto Login: No recognizable state found on mpass-proxy page');
         return 'unknown_state';
     }
+
+    function isKampusFlow() {
+        const allowedHosts = [
+            'sanomapro.fi',
+            'kampus.sanomapro.fi',
+            'kirjautuminen.sanomapro.fi',
+            'mpass-proxy.csc.fi'
+        ];
+
+        try {
+            const params = new URLSearchParams(window.location.search);
+            for (const [key, value] of params.entries()) {
+                const lower = `${key}=${value}`.toLowerCase();
+                if (allowedHosts.some((host) => lower.includes(host))) {
+                    return true;
+                }
+            }
+        } catch (e) {}
+
+        try {
+            const referrer = document.referrer || '';
+            if (allowedHosts.some((host) => referrer.includes(host))) {
+                return true;
+            }
+        } catch (e) {}
+
+        return false;
+    }
     
     async function waitAndTryClick() {
         // Check if auto-login is enabled first
@@ -178,6 +206,11 @@
         
         if (!isEnabled) {
             console.log('Kampus Auto Login: Auto-login is disabled, skipping automation');
+            return;
+        }
+
+        if (!isKampusFlow()) {
+            console.log('Kampus Auto Login: MPASS page not related to Kampus flow, skipping');
             return;
         }
         

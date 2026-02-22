@@ -106,11 +106,45 @@
         }
     }
 
+    function isKampusFlow() {
+        const allowedHosts = [
+            'sanomapro.fi',
+            'kampus.sanomapro.fi',
+            'kirjautuminen.sanomapro.fi',
+            'mpass-proxy.csc.fi'
+        ];
+
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const relayState = params.get('RelayState');
+            if (relayState) {
+                const decoded = decodeURIComponent(relayState);
+                if (allowedHosts.some((host) => decoded.includes(host))) {
+                    return true;
+                }
+            }
+        } catch (e) {}
+
+        try {
+            const referrer = document.referrer || '';
+            if (allowedHosts.some((host) => referrer.includes(host))) {
+                return true;
+            }
+        } catch (e) {}
+
+        return false;
+    }
+
     async function runADFSAutomation() {
         console.log('Kampus Auto Login: Running on sts.edu.espoo.fi ADFS page');
 
         if (!(await isAutoLoginEnabled())) {
             console.log('Kampus Auto Login: Auto-login disabled, skipping ADFS Sign in click');
+            return;
+        }
+
+        if (!isKampusFlow()) {
+            console.log('Kampus Auto Login: ADFS page not related to Kampus flow, skipping');
             return;
         }
 
