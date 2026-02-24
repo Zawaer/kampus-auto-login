@@ -288,6 +288,7 @@
                 clearInterval(interval);
                 if (attempts >= maxAttempts) {
                     console.log('Kampus Auto Login: Could not find MPASSid button after', maxAttempts, 'attempts');
+                    hideLoginOverlay();
                 }
             }
         }, 1000);
