@@ -3,53 +3,36 @@
   "name": "Kampus Auto Login",
   "version": "1.0",
   "description": "Automate the login process for Sanoma Pro Kampus",
-  "permissions": [
-    "activeTab",
-    "storage"
-  ],
+  "permissions": ["activeTab", "storage", "tabs"],
   "host_permissions": [
     "*://kampus.sanomapro.fi/*",
     "*://kirjautuminen.sanomapro.fi/*",
     "*://mpass-proxy.csc.fi/*",
     "*://sanomapro.fi/*",
-    "*://sts.edu.espoo.fi/*"
+    "*://*/adfs/ls/*"
   ],
   "action": {
     "default_popup": "ui/popup.html",
     "default_title": "Kampus Auto Login",
-    "default_icon": {
-      "48": "icon48.png"
-    }
+    "default_icon": { "48": "icon48.png" }
   },
-  "icons": {
-    "48": "icon48.png"
+  "icons": { "48": "icon48.png" },
+  "background": { "service_worker": "background.js" },
+  "options_ui": {
+    "page": "ui/setup.html",
+    "open_in_tab": true
   },
   "content_scripts": [
+    { "matches": ["*://kirjautuminen.sanomapro.fi/*"], "js": ["scripts/kirjautuminen-content.js"], "run_at": "document_end" },
+    { "matches": ["*://mpass-proxy.csc.fi/*"], "js": ["scripts/mpass-content.js"], "run_at": "document_end" },
+    { "matches": ["*://sanomapro.fi/*", "*://*.sanomapro.fi/*"], "js": ["scripts/sanomapro-content.js"], "run_at": "document_end" },
     {
-      "matches": ["*://kirjautuminen.sanomapro.fi/*"],
-      "js": ["scripts/kirjautuminen-content.js"],
-      "run_at": "document_end"
-    },
-    {
-      "matches": ["*://mpass-proxy.csc.fi/*"],
-      "js": ["scripts/mpass-content.js"],
-      "run_at": "document_end"
-    },
-    {
-      "matches": ["*://sanomapro.fi/*", "*://*.sanomapro.fi/*"],
-      "js": ["scripts/sanomapro-content.js"],
-      "run_at": "document_end"
-    },
-    {
-      "matches": ["*://sts.edu.espoo.fi/adfs/ls/*"],
+      "matches": ["*://*/adfs/ls/*"],
       "js": ["scripts/adfs-content.js"],
       "run_at": "document_end"
     }
   ],
   "browser_specific_settings": {
-    "gecko": {
-      "id": "@kampus-auto-login",
-      "strict_min_version": "58.0"
-    }
+    "gecko": { "id": "@kampus-auto-login", "strict_min_version": "58.0" }
   }
 }

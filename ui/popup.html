@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,13 +9,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Kampus Auto Login</h1>
+            <h1 data-i18n="popupTitle">Kampus Auto Login</h1>
         </div>
         
         <div class="content">
             <div class="toggle-section">
                 <label class="toggle-label">
-                    <span class="toggle-text"> Enable Auto Login</span>
+                    <span class="toggle-text" data-i18n="popupEnableToggle">Enable Auto Login</span>
                     <div class="toggle-switch">
                         <input type="checkbox" id="autoLoginToggle">
                         <span class="slider"></span>
@@ -24,19 +24,25 @@
             </div>
             
             <div class="info-section">
-                <p class="info-text">
+                <p class="info-text" data-i18n="popupInfoText">
                     When enabled, this extension will automatically navigate through the Kampus login process:
                 </p>
                 <ul class="process-list">
-                    <li>kampus.sanomapro.fi → kirjautuminen.sanomapro.fi</li>
-                    <li>Click MPASSid login button → mpass-proxy.csc.fi</li>
-                    <li>Select correct school → sanomapro.fi</li>
-                    <li>Open study materials → kampus.sanomapro.fi</li>
+                    <li data-i18n="popupProcess1">kampus.sanomapro.fi → kirjautuminen.sanomapro.fi</li>
+                    <li data-i18n="popupProcess2">Click MPASSid login button → mpass-proxy.csc.fi</li>
+                    <li data-i18n="popupProcess3">Select correct school → sanomapro.fi</li>
+                    <li data-i18n="popupProcess4">Open study materials → kampus.sanomapro.fi</li>
                 </ul>
+            </div>
+            <div class="municipality-section">
+                <p class="municipality-label"><span data-i18n="popupSchoolLabel">School:</span> <span id="schoolDisplay">—</span></p>
+                <p class="municipality-label"><span data-i18n="popupDomainLabel">Domain:</span> <span id="domainDisplay">—</span></p>
+                <a href="#" id="changeMunicipality" class="change-link" data-i18n="popupChangeSettings">Change settings</a>
             </div>
         </div>
     </div>
     
+    <script src="i18n.js"></script>
     <script src="popup.js"></script>
 </body>
 </html>

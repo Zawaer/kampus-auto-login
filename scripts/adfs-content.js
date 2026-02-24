@@ -1,4 +1,4 @@
-// Content script for sts.edu.espoo.fi ADFS sign-in page
+// Content script for municipality ADFS sign-in pages (sts.edu.<municipality>.fi)
 // Clicks the Sign in button when credentials are already autofilled
 
 (function () {
@@ -56,6 +56,17 @@
             console.error('Kampus Auto Login: Error reading settings on ADFS page', error);
             return true;
         }
+    }
+
+    function hideLoginOverlay() {
+        try {
+            const overlay = document.getElementById('kampus-autologin-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity 0.2s ease';
+                setTimeout(() => { try { overlay.remove(); } catch (e) {} }, 250);
+            }
+        } catch (e) {}
     }
 
     function isVisible(element) {
@@ -136,7 +147,25 @@
     }
 
     async function runADFSAutomation() {
-        console.log('Kampus Auto Login: Running on sts.edu.espoo.fi ADFS page');
+        const currentHost = window.location.hostname;
+        let configuredDomain;
+        try {
+            const result = await extensionApi.storage.sync.get({ adfsDomain: '' });
+            configuredDomain = result.adfsDomain;
+        } catch (e) {
+            configuredDomain = '';
+        }
+
+        if (!configuredDomain) {
+            console.log('Kampus Auto Login: No ADFS domain configured, skipping. Open extension options to set your login domain.');
+            return;
+        }
+
+        if (currentHost !== configuredDomain) {
+            return;
+        }
+
+        console.log('Kampus Auto Login: Running on', currentHost, 'ADFS page');
 
         if (!(await isAutoLoginEnabled())) {
             console.log('Kampus Auto Login: Auto-login disabled, skipping ADFS Sign in click');
@@ -171,6 +200,7 @@
             if (attempts >= maxAttempts) {
                 clearInterval(interval);
                 console.log('Kampus Auto Login: ADFS fields were not autofilled in time; not clicking Sign in');
+                hideLoginOverlay();
             }
         }, 500);
     }

@@ -50,6 +50,17 @@
         } catch (e) {}
     }
     
+    function hideLoginOverlay() {
+        try {
+            const overlay = document.getElementById('kampus-autologin-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity 0.2s ease';
+                setTimeout(() => { try { overlay.remove(); } catch (e) {} }, 250);
+            }
+        } catch (e) {}
+    }
+
     // Check if auto-login is enabled before proceeding
     async function checkAutoLoginEnabled() {
         try {
@@ -61,6 +72,20 @@
             console.error('Kampus Auto Login: Error checking settings:', error);
             return true;
         }
+    }
+
+    // Find school item by text content (matches configured school name)
+    function findSchoolByText(searchTerm) {
+        const items = document.querySelectorAll('[id^="item-"], .listItem, .schoolItem, li, div[role="option"]');
+        const term = (searchTerm || '').toLowerCase();
+        const termParts = term.split(/\s+/).filter(Boolean);
+        for (const item of items) {
+            const text = (item.textContent || '').toLowerCase();
+            if (termParts.every((p) => text.includes(p)) || text.includes(term)) {
+                return item;
+            }
+        }
+        return null;
     }
 
     // Helper: observe for a selector to appear in the DOM and resolve with the element (or null on timeout)
@@ -91,39 +116,48 @@
         });
     }
 
-    // State detection & handlers
-    function handleMPassProxyStates() {
-        // State 1: Check if there's a "last selected" school (Otaniemen lukio)
-        const lastSelectedSchool = document.querySelector('#selectedList > div > div.listItem > div');
-        if (lastSelectedSchool) {
-            console.log('Kampus Auto Login: Found last selected school, clicking it');
-            lastSelectedSchool.click();
-            return 'clicked_last_selected';
+    // State detection & handlers – uses configured school from storage
+    async function handleMPassProxyStates() {
+        const { schoolName } = await extensionApi.storage.sync.get({ schoolName: '' });
+        const searchTerm = (schoolName || '').trim().toLowerCase();
+        if (!searchTerm) {
+            console.log('Kampus Auto Login: No school configured, skipping school selection');
+            return 'no_school_configured';
         }
 
-        // State 2: Check if we need to search for and select "Otaniemen lukio"
+        // State 1: Check if there's a "last selected" school
+        const lastSelectedSchool = document.querySelector('#selectedList > div > div.listItem > div');
+        if (lastSelectedSchool) {
+            const lastText = (lastSelectedSchool.textContent || '').toLowerCase();
+            if (lastText.includes(searchTerm) || searchTerm.includes(lastText.split(/[\s,]+/)[0])) {
+                console.log('Kampus Auto Login: Found last selected school matching config, clicking it');
+                lastSelectedSchool.click();
+                return 'clicked_last_selected';
+            }
+        }
+
+        // State 2: Check if we need to search for and select the configured school
         const searchInput = document.querySelector('#searchschoolterm');
         if (searchInput) {
-            console.log('Kampus Auto Login: Found search input, looking for Otaniemen lukio');
+            const currentValue = (searchInput.value || '').trim().toLowerCase();
+            const minMatch = searchTerm.substring(0, Math.min(4, searchTerm.length));
 
-            if (!searchInput.value || searchInput.value.toLowerCase() !== 'otaniem') {
-                console.log('Kampus Auto Login: Filling search input with "Otaniem"');
-                
+            if (!currentValue || !currentValue.includes(minMatch)) {
+                console.log('Kampus Auto Login: Filling search input with', searchTerm);
+
                 try {
                     searchInput.focus();
                     searchInput.click();
                     searchInput.value = '';
-                    
-                    // Simulate realistic user interaction to trigger search interface
-                    const searchText = 'Otaniem';
-                    for (let i = 0; i < searchText.length; i++) {
-                        searchInput.value = searchText.substring(0, i + 1);
-                        searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: searchText[i], bubbles: true }));
-                        searchInput.dispatchEvent(new KeyboardEvent('keypress', { key: searchText[i], bubbles: true }));
+
+                    for (let i = 0; i < searchTerm.length; i++) {
+                        searchInput.value = searchTerm.substring(0, i + 1);
+                        searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: searchTerm[i], bubbles: true }));
+                        searchInput.dispatchEvent(new KeyboardEvent('keypress', { key: searchTerm[i], bubbles: true }));
                         searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-                        searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: searchText[i], bubbles: true }));
+                        searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: searchTerm[i], bubbles: true }));
                     }
-                    
+
                     searchInput.dispatchEvent(new Event('change', { bubbles: true }));
                     searchInput.dispatchEvent(new Event('blur', { bubbles: true }));
                 } catch (e) {
@@ -133,12 +167,12 @@
                 return 'searching_school';
             }
 
-            const otaniemiItem = document.querySelector('#item-151');
+            const schoolItem = findSchoolByText(searchTerm);
             const continueButton = document.querySelector('#continueButton');
 
-            if (otaniemiItem && continueButton) {
-                console.log('Kampus Auto Login: Found both item and continue button');
-                otaniemiItem.click();
+            if (schoolItem && continueButton) {
+                console.log('Kampus Auto Login: Found school and continue button');
+                schoolItem.click();
                 setTimeout(() => {
                     continueButton.click();
                 }, 300);
@@ -220,29 +254,40 @@
         console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
         showLoginOverlay();
         
-        // First: try immediate presence of last-selected school
+        // First: try immediate presence of last-selected school (only if it matches configured school)
+        const { schoolName } = await extensionApi.storage.sync.get({ schoolName: '' });
+        const searchTerm = (schoolName || '').trim().toLowerCase();
         const lastNow = document.querySelector('#selectedList > div > div.listItem > div');
-        if (lastNow) {
-            console.log('Kampus Auto Login: Found last selected school immediately, clicking it');
-            try { lastNow.click(); } catch (e) { console.error('Error clicking last selected', e); }
-            return;
+        if (lastNow && searchTerm) {
+            const lastText = (lastNow.textContent || '').toLowerCase();
+            if (lastText.includes(searchTerm) || searchTerm.split(/\s+/).some((p) => lastText.includes(p))) {
+                console.log('Kampus Auto Login: Found last selected school matching config, clicking it');
+                try { lastNow.click(); } catch (e) { console.error('Error clicking last selected', e); }
+                return;
+            }
         }
 
-        // Wait for the last-selected school to appear (short timeout). If it appears, click and stop.
+        // Wait for the last-selected school to appear (short timeout). If it matches config, click and stop.
         const observedLast = await observeSelector('#selectedList > div > div.listItem > div', 3000);
-        if (observedLast) {
-            const stored = await extensionApi.storage.sync.get({ autoLoginEnabled: true });
-            if (stored.autoLoginEnabled) {
-                console.log('Kampus Auto Login: Observed last selected school after wait, clicking');
-                try { observedLast.click(); } catch (e) { console.error('Error clicking observed element', e); }
-            } else {
-                console.log('Kampus Auto Login: Auto-login disabled; observed element will not be clicked');
+        if (observedLast && searchTerm) {
+            const lastText = (observedLast.textContent || '').toLowerCase();
+            if (lastText.includes(searchTerm) || searchTerm.split(/\s+/).some((p) => lastText.includes(p))) {
+                const stored = await extensionApi.storage.sync.get({ autoLoginEnabled: true });
+                if (stored.autoLoginEnabled) {
+                    console.log('Kampus Auto Login: Observed last selected school matching config, clicking');
+                    try { observedLast.click(); } catch (e) { console.error('Error clicking observed element', e); }
+                }
+                return;
             }
-            return;
         }
 
         // If last-selected did not appear within the timeout, proceed to search/other handling
-        const result = handleMPassProxyStates();
+        const result = await handleMPassProxyStates();
+
+        if (result === 'no_school_configured') {
+            console.log('Kampus Auto Login: Configure your school in extension options');
+            return;
+        }
 
         if (result === 'clicked_last_selected' || result === 'clicked_search_result') {
             console.log('Kampus Auto Login: Successfully handled mpass-proxy state:', result);
@@ -257,64 +302,41 @@
         if (result === 'searching_school') {
             console.log('Kampus Auto Login: Initiated school search, waiting for completion...');
 
-            // First, wait a bit for the search interface to open and results to load
             await new Promise(r => setTimeout(r, 800));
 
-            // Try to find the school by ID or by text content
-            const findSchool = () => {
-                const byId = document.querySelector('#item-151');
-                if (byId) {
-                    return byId;
-                }
+            const { schoolName } = await extensionApi.storage.sync.get({ schoolName: '' });
+            const term = (schoolName || '').trim().toLowerCase();
 
-                // Fallback: search by text content
-                const items = document.querySelectorAll('[id^="item-"], .listItem, .schoolItem, li, div[role="option"]');
-                for (const item of items) {
-                    const text = (item.textContent || '').toLowerCase();
-                    if (text.includes('otaniemen lukio') || text.includes('otaniemi')) {
-                        return item;
-                    }
-                }
-                return null;
-            };
-
-            // Try immediate search first
-            let schoolItem = findSchool();
+            let schoolItem = findSchoolByText(term);
             if (schoolItem) {
                 console.log('Kampus Auto Login: School found, clicking it');
                 schoolItem.click();
                 setTimeout(() => {
                     const cb = document.querySelector('#continueButton');
-                    if (cb) {
-                        console.log('Kampus Auto Login: Clicking continue button');
-                        cb.click();
-                    }
+                    if (cb) cb.click();
                 }, 300);
                 return;
             }
 
-            // If not found immediately, observe for it to appear
-            console.log('Kampus Auto Login: School not found immediately, observing for it to appear...');
-            observeSelector('#item-151', 12000).then(async (el) => {
-                if (!el) {
-                    console.log('Kampus Auto Login: #item-151 did not appear via observer, trying text-based search');
-                    el = findSchool();
-                }
-
+            console.log('Kampus Auto Login: School not found immediately, observing...');
+            const maxWait = 12000;
+            const start = Date.now();
+            const checkInterval = setInterval(async () => {
+                const el = findSchoolByText(term);
                 if (el) {
+                    clearInterval(checkInterval);
                     console.log('Kampus Auto Login: Found school item, clicking it');
                     el.click();
                     setTimeout(() => {
                         const cb = document.querySelector('#continueButton');
-                        if (cb) {
-                            console.log('Kampus Auto Login: Clicking continue button');
-                            cb.click();
-                        }
+                        if (cb) cb.click();
                     }, 300);
-                } else {
-                    console.log('Kampus Auto Login: School item not found after search and fallback attempts');
+                } else if (Date.now() - start > maxWait) {
+                    clearInterval(checkInterval);
+                    console.log('Kampus Auto Login: School item not found after', maxWait, 'ms');
+                    hideLoginOverlay();
                 }
-            });
+            }, 400);
 
             return;
         }
@@ -323,14 +345,14 @@
         if (result === 'unknown_state') {
             let attempts = 0;
             const maxAttempts = 10;
-            const interval = setInterval(() => {
+            const interval = setInterval(async () => {
                 attempts++;
-
-                const retryResult = handleMPassProxyStates();
+                const retryResult = await handleMPassProxyStates();
                 if (retryResult !== 'unknown_state' || attempts >= maxAttempts) {
                     clearInterval(interval);
                     if (attempts >= maxAttempts) {
                         console.log('Kampus Auto Login: Could not handle mpass-proxy state after', maxAttempts, 'attempts');
+                        hideLoginOverlay();
                     } else {
                         console.log('Kampus Auto Login: Successfully handled state on retry:', retryResult);
                     }
