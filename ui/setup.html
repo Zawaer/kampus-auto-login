@@ -29,6 +29,36 @@
         }
         .form-group select { cursor: pointer; }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: #643695; box-shadow: 0 0 0 2px rgba(100, 54, 149, 0.2); }
+        .school-selector { position: relative; }
+        .school-input { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid #ddd; border-radius: 6px; background: #fff; }
+        .school-input:focus { outline: none; border-color: #643695; box-shadow: 0 0 0 2px rgba(100, 54, 149, 0.2); }
+        .school-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .school-dropdown.active { display: block; }
+        .school-option {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            color: #333;
+        }
+        .school-option:hover { background: #f7f7fb; }
+        .school-option.selected { background: #e9e3f5; color: #643695; font-weight: 500; }
+        .school-loading { padding: 12px; text-align: center; color: #999; font-size: 14px; }
+        .school-error { padding: 12px; color: #dc3545; font-size: 13px; }
         .btn-save {
             width: 100%;
             padding: 12px 16px;
@@ -58,9 +88,13 @@
         </div>
         <form id="setupForm">
             <div class="form-group">
-                <label for="schoolName" data-i18n="setupSchoolLabel">Koulun nimi (hakusana)</label>
-                <input type="text" id="schoolName" data-i18n="setupSchoolPlaceholder" data-i18n-attr="placeholder" required autocomplete="off">
+                <label for="schoolSearch" data-i18n="setupSchoolLabel">Koulun nimi (hakusana)</label>
+                <div class="school-selector">
+                    <input type="text" id="schoolSearch" class="school-input" data-i18n="setupSchoolPlaceholder" data-i18n-attr="placeholder" autocomplete="off">
+                    <div id="schoolDropdown" class="school-dropdown"></div>
+                </div>
                 <p class="form-hint" data-i18n="setupSchoolHint">Hakutermi, jolla koulu löytyy mpass-proxy.csc.fi -sivulla.</p>
+                <input type="hidden" id="schoolName">
             </div>
             <div class="form-group">
                 <label for="adfsDomain" data-i18n="setupDomainLabel">Kirjautumisdomain</label>
