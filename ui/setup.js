@@ -113,21 +113,21 @@ async function fetchSchools() {
 }
 
 // Initialize school selector
-async function initSchoolSelector() {
+async function initSchoolSelector(currentLang) {
     const searchInput = document.getElementById('schoolSearch');
     const dropdown = document.getElementById('schoolDropdown');
     const schoolNameHidden = document.getElementById('schoolName');
     let allSchools = [];
 
     // Show loading state
-    dropdown.innerHTML = '<div class="school-loading">Loading schools...</div>';
+    dropdown.innerHTML = `<div class="school-loading">${t(currentLang, 'setupSchoolLoading')}</div>`;
     dropdown.classList.add('active');
 
     // Fetch schools
     allSchools = await fetchSchools();
 
     if (allSchools.length === 0) {
-        dropdown.innerHTML = '<div class="school-error">Could not load schools. You can type your school name manually.</div>';
+        dropdown.innerHTML = `<div class="school-error">${t(currentLang, 'setupSchoolLoadError')}</div>`;
         setTimeout(() => dropdown.classList.remove('active'), 3000);
         return;
     }
@@ -139,7 +139,7 @@ async function initSchoolSelector() {
         );
 
         if (filtered.length === 0) {
-            dropdown.innerHTML = '<div class="school-error">No schools found. Try another search term.</div>';
+            dropdown.innerHTML = `<div class="school-error">${t(currentLang, 'setupSchoolNotFound')}</div>`;
             return;
         }
 
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     applyTranslations(currentLang);
 
     // Initialize school selector
-    await initSchoolSelector();
+    await initSchoolSelector(currentLang);
 
     async function switchLanguage(lang) {
         currentLang = lang;
