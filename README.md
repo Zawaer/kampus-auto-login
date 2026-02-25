@@ -52,4 +52,4 @@ During the flow the extension shows a full-screen overlay with a subtle spinner 
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
