@@ -1,4 +1,4 @@
-// Setup page – user enters their municipality's ADFS domain
+// Setup page – user enters their municipality's ADFS domain and selects school
 // Uses extensionApi from i18n.js (loaded first)
 
 async function closeSetupTab() {
@@ -75,9 +75,138 @@ function normalizeDomain(value) {
     return s.replace(/^https?:\/\//, '').replace(/\/.*$/, '').split('/')[0];
 }
 
+// Fetch schools from MPASS API
+async function fetchSchools() {
+    try {
+        const response = await fetch('https://mpass-proxy.csc.fi/api/v2/authnsources', {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        if (!response.ok) throw new Error('API error');
+        const data = await response.json();
+        
+        // Parse schools from the response
+        // Response has { title, lista: [ { schools: [ { school, schoolCode, ... }, ... ], ... }, ... ] }
+        if (data.lista && Array.isArray(data.lista)) {
+            const schools = [];
+            data.lista.forEach(org => {
+                if (org.schools && Array.isArray(org.schools)) {
+                    org.schools.forEach(school => {
+                        if (school.school) {
+                            schools.push({
+                                name: school.school,
+                                id: school.schoolCode || school.school
+                            });
+                        }
+                    });
+                }
+            });
+            return schools;
+        }
+        return [];
+    } catch (e) {
+        console.error('Failed to fetch schools:', e);
+        return [];
+    }
+}
+
+// Initialize school selector
+async function initSchoolSelector() {
+    const searchInput = document.getElementById('schoolSearch');
+    const dropdown = document.getElementById('schoolDropdown');
+    const schoolNameHidden = document.getElementById('schoolName');
+    let allSchools = [];
+
+    // Show loading state
+    dropdown.innerHTML = '<div class="school-loading">Loading schools...</div>';
+    dropdown.classList.add('active');
+
+    // Fetch schools
+    allSchools = await fetchSchools();
+
+    if (allSchools.length === 0) {
+        dropdown.innerHTML = '<div class="school-error">Could not load schools. You can type your school name manually.</div>';
+        setTimeout(() => dropdown.classList.remove('active'), 3000);
+        return;
+    }
+
+    // Render schools based on filter
+    function renderSchools(filter = '') {
+        const filtered = allSchools.filter(school => 
+            school.name.toLowerCase().includes(filter.toLowerCase())
+        );
+
+        if (filtered.length === 0) {
+            dropdown.innerHTML = '<div class="school-error">No schools found. Try another search term.</div>';
+            return;
+        }
+
+        dropdown.innerHTML = filtered
+            .slice(0, 50) // Limit to 50 options
+            .map(school => `
+                <div class="school-option" data-school="${school.name}" data-id="${school.id}">
+                    ${school.name}
+                </div>
+            `)
+            .join('');
+
+        // Add click handlers
+        dropdown.querySelectorAll('.school-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const schoolName = option.getAttribute('data-school');
+                searchInput.value = schoolName;
+                schoolNameHidden.value = schoolName;
+                dropdown.classList.remove('active');
+            });
+        });
+    }
+
+    // Load stored school name
+    try {
+        const stored = await extensionApi.storage.sync.get({ schoolName: '' });
+        if (stored.schoolName) {
+            searchInput.value = stored.schoolName;
+            schoolNameHidden.value = stored.schoolName;
+        }
+    } catch (e) {
+        console.error('Error loading stored school:', e);
+    }
+
+    // Search on input
+    searchInput.addEventListener('input', (e) => {
+        const filter = e.target.value.trim();
+        if (filter.length === 0) {
+            dropdown.classList.remove('active');
+            return;
+        }
+        renderSchools(filter);
+        dropdown.classList.add('active');
+    });
+
+    // Show dropdown on focus
+    searchInput.addEventListener('focus', () => {
+        if (searchInput.value.trim().length > 0) {
+            renderSchools(searchInput.value.trim());
+            dropdown.classList.add('active');
+        }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (e.target.id !== 'schoolSearch' && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('active');
+        }
+    });
+
+    // Close dropdown initially
+    dropdown.classList.remove('active');
+}
 
 document.addEventListener('DOMContentLoaded', async function () {
-    const schoolInput = document.getElementById('schoolName');
+    const searchInput = document.getElementById('schoolSearch');
+    const schoolNameHidden = document.getElementById('schoolName');
     const domainInput = document.getElementById('adfsDomain');
     const form = document.getElementById('setupForm');
     const saveBtn = document.getElementById('saveBtn');
@@ -90,13 +219,15 @@ document.addEventListener('DOMContentLoaded', async function () {
     let storageResult = { schoolName: '', adfsDomain: '' };
     try {
         storageResult = await extensionApi.storage.sync.get({ schoolName: '', adfsDomain: '' });
-        if (storageResult.schoolName) schoolInput.value = storageResult.schoolName;
         if (storageResult.adfsDomain) domainInput.value = storageResult.adfsDomain;
     } catch (e) {
         console.error('Error loading settings:', e);
     }
 
     applyTranslations(currentLang);
+
+    // Initialize school selector
+    await initSchoolSelector();
 
     async function switchLanguage(lang) {
         currentLang = lang;
@@ -112,9 +243,16 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
-        const schoolName = (schoolInput.value || '').trim();
+        const schoolName = (schoolNameHidden.value || searchInput.value || '').trim();
         const domain = normalizeDomain(domainInput.value);
-        if (!schoolName || !domain) return;
+        
+        if (!schoolName || !domain) {
+            successMsg.textContent = t(currentLang, 'setupSaveError');
+            successMsg.style.color = '#dc3545';
+            successMsg.style.background = '#f8d7da';
+            successMsg.style.display = 'block';
+            return;
+        }
 
         successMsg.style.display = 'none';
         saveBtn.disabled = true;
