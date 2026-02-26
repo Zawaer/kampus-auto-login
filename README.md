@@ -7,9 +7,9 @@ This extension automates the login process for Kampus Sanoma Pro by automaticall
 3. `mpass-proxy.csc.fi` → automatically continues to `sanomapro.fi`
 4. On the `sanomapro.fi` landing page, redirects directly to `https://kampus.sanomapro.fi/`
 
-Demo:
+Demo video (because you can't really try it out without access to Sanoma Pro Kampus):
 
-https://github.com/user-attachments/assets/09b93963-7cee-4439-84fa-730497da34e8
+https://github.com/user-attachments/assets/57f13908-639c-4317-8e72-133216f97c81
 
 <img width="491" height="675" alt="image" src="https://github.com/user-attachments/assets/f37dfcee-73f5-4db2-ac90-ba9218364fd1" />
 
