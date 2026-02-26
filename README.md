@@ -1,13 +1,18 @@
 # Kampus Auto Login Browser Extension
 
-This extension automates the login process for Kampus Sanoma Pro by automatically navigating through the authentication flow:
+Kampus Auto Login speeds up the Sanoma Pro Kampus sign-in flow by automatically handling repetitive navigation and button clicks.
 
-1. Start at `kampus.sanomapro.fi` (automatically redirects to `kirjautuminen.sanomapro.fi`)
-2. Automatically clicks the MPASSid login button
-3. `mpass-proxy.csc.fi` → automatically continues to `sanomapro.fi`
-4. On the `sanomapro.fi` landing page, redirects directly to `https://kampus.sanomapro.fi/`
+## What it does
 
-Demo video (because you can't really try it out without access to Sanoma Pro Kampus):
+When enabled, the extension automates this flow:
+
+1. `kampus.sanomapro.fi` → `kirjautuminen.sanomapro.fi`
+2. Clicks the MPASSid login button
+3. Continues through `mpass-proxy.csc.fi`
+4. Handles the ADFS login page for your configured domain
+5. Redirects from the `sanomapro.fi` landing page back to `https://kampus.sanomapro.fi/`
+
+Demo video:
 
 https://github.com/user-attachments/assets/57f13908-639c-4317-8e72-133216f97c81
 
@@ -17,38 +22,57 @@ https://github.com/user-attachments/assets/57f13908-639c-4317-8e72-133216f97c81
 
 ### Chrome / Chromium
 
-1. Download the latest release and unzip it
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable "Developer mode" in the top right corner
-4. Click "Load unpacked" button
-5. Select the folder containing this extension (`kampus-auto-login`)
-6. The extension should now be installed and active
+1. Download the extension source/release and unzip it.
+2. Open `chrome://extensions/`.
+3. Enable **Developer mode**.
+4. Click **Load unpacked**.
+5. Select the `kampus-auto-login` folder.
 
-# Firefox / Zen Browser
+### Firefox / Zen
 
-1. Download the latest release and unzip it
-2. Open Firefox (or Zen) and navigate to about:debugging (or about:debugging#/runtime/this-firefox).
-3. Click "This Firefox" in the sidebar.
-4. Click "Load Temporary Add-on...".
-5. In the file picker select this extension's `manifest.json` (or any file inside the `kampus-auto-login` folder).
-6. The extension will load temporarily and appear in the Extensions list; note that it will be removed when Firefox restarts.
+Temporary install (for local testing):
+
+1. Open `about:debugging#/runtime/this-firefox`.
+2. Click **Load Temporary Add-on...**.
+3. Select `manifest.json` from this project.
+4. Note: temporary add-ons are removed when the browser restarts.
+
+## Quick tutorial (first-time setup)
+
+1. Click the extension icon and open **Change settings**.
+2. Choose language (Suomi / English).
+3. In **Koulun nimi / School name**, start typing and select your school from the dropdown.
+4. In **Kirjautumisosoite / Login domain**, enter your municipality/school ADFS domain (example: `sts.edu.espoo.fi`).
+5. Click **Tallenna / Save**.
+6. Return to Kampus and sign in; after that, the extension can automate the flow when enabled.
+
+## Configuration and popup
+
+- **Enable Auto Login** toggle controls whether automation runs.
+- Popup shows the currently saved school and login domain.
+- Settings are stored in browser sync storage (`schoolName`, `adfsDomain`, `autoLoginEnabled`, `language`).
 
 ## How it works
 
 The extension uses content scripts that run on specific domains:
 
-- **kirjautuminen-content.js**: Automatically clicks the MPASSid login button on the login page
-- **mpass-content.js**: Handles the MPASS proxy flow, limited to Kampus/Sanoma Pro redirects
-- **adfs-content.js**: Only auto-signs in on ADFS pages when the flow originates from Kampus/Sanoma Pro
-- **sanomapro-content.js**: Redirects only on the `sanomapro.fi` root landing page (not subpages)
+- `scripts/kirjautuminen-content.js` — clicks the MPASSid login button on the login page
+- `scripts/mpass-content.js` — handles MPASS proxy flow logic
+- `scripts/adfs-content.js` — handles ADFS page automation with flow checks
+- `scripts/sanomapro-content.js` — redirects from Sanoma Pro landing page to Kampus
 
-During the flow the extension shows a full-screen overlay with a subtle spinner and the text "Logging in..." so you can tell the automation is running.
+Background and UI files:
 
-## Security
+- `background.js` — background message handling
+- `ui/popup.html`, `ui/popup.js`, `ui/popup.css` — popup UI
+- `ui/setup.html`, `ui/setup.js`, `ui/i18n.js` — setup page and translations
 
-- This extension only runs on the specified Sanoma Pro and MPASSid domains and ignores unrelated MPASS/ADFS flows
-- It doesn't store any personal information or credentials
-- It only automates clicking buttons that you would normally click manually
+## Permissions and privacy
+
+- Uses `storage` and `tabs` permissions.
+- Runs only on declared host permissions in `manifest.json`.
+- Does not store credentials or personal identity data.
+- Automates actions you would otherwise do manually.
 
 ## License
 
