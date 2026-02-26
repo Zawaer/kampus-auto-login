@@ -14,7 +14,7 @@ When enabled, the extension automates this flow:
 
 Demo video:
 
-https://github.com/user-attachments/assets/57f13908-639c-4317-8e72-133216f97c81
+https://github.com/user-attachments/assets/1f1bc9f3-0441-4a0a-99f4-9d9563dbec1a
 
 <img width="491" height="675" alt="image" src="https://github.com/user-attachments/assets/f37dfcee-73f5-4db2-ac90-ba9218364fd1" />
 
