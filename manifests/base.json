@@ -25,9 +25,21 @@
     "open_in_tab": true
   },
   "content_scripts": [
-    { "matches": ["https://kirjautuminen.sanomapro.fi/*"], "js": ["scripts/kirjautuminen-content.js"], "run_at": "document_end" },
-    { "matches": ["https://mpass-proxy.csc.fi/*"], "js": ["scripts/mpass-content.js"], "run_at": "document_end" },
-    { "matches": ["https://sanomapro.fi/*", "https://www.sanomapro.fi/*"], "js": ["scripts/sanomapro-content.js"], "run_at": "document_end" },
+    {
+      "matches": ["https://kirjautuminen.sanomapro.fi/*"],
+      "js": ["scripts/kirjautuminen-content.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://mpass-proxy.csc.fi/*"],
+      "js": ["scripts/mpass-content.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://sanomapro.fi/*", "https://www.sanomapro.fi/*"],
+      "js": ["scripts/sanomapro-content.js"],
+      "run_at": "document_end"
+    },
     {
       "matches": ["https://*/adfs/ls/*"],
       "js": ["scripts/adfs-content.js"],
