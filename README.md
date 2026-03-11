@@ -18,13 +18,31 @@ https://github.com/user-attachments/assets/1f1bc9f3-0441-4a0a-99f4-9d9563dbec1a
 
 ## Installation
 
+Build browser-specific packages first:
+
+```bash
+node scripts/build-variants.mjs
+```
+
+This creates:
+
+- `dist/chrome/`
+- `dist/firefox/`
+
+You can also build just one target:
+
+```bash
+node scripts/build-variants.mjs chrome
+node scripts/build-variants.mjs firefox
+```
+
 ### Chrome / Chromium
 
 1. Download the extension source/release and unzip it.
 2. Open `chrome://extensions/`.
 3. Enable **Developer mode**.
 4. Click **Load unpacked**.
-5. Select the `kampus-auto-login` folder.
+5. Select the `dist/chrome` folder.
 
 ### Firefox / Zen
 
@@ -32,7 +50,7 @@ Temporary install (for local testing):
 
 1. Open `about:debugging#/runtime/this-firefox`.
 2. Click **Load Temporary Add-on...**.
-3. Select `manifest.json` from this project.
+3. Select `dist/firefox/manifest.json`.
 4. Note: temporary add-ons are removed when the browser restarts.
 
 ## Quick tutorial (first-time setup)
