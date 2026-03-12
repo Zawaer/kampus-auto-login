@@ -30,7 +30,7 @@ const translations = {
         popupProcess3: 'Select correct school → sanomapro.fi',
         popupProcess4: 'Open study materials → kampus.sanomapro.fi',
         popupSchoolLabel: 'School:',
-        popupDomainLabel: 'Kirjautumisosoite:',
+        popupDomainLabel: 'Domain:',
         popupNotSet: 'Not set',
         popupChangeSettings: 'Change settings',
     },
@@ -63,9 +63,9 @@ const translations = {
         popupProcess3: 'Valitse oikea koulu → sanomapro.fi',
         popupProcess4: 'Avaa opetusmateriaalit → kampus.sanomapro.fi',
         popupSchoolLabel: 'Koulu:',
-        popupDomainLabel: 'Domain:',
+        popupDomainLabel: 'Kirjautumisosoite:',
         popupNotSet: 'Ei asetettu',
-        popupChangeSettings: 'Vaihda asetukset',
+        popupChangeSettings: 'Muuta asetuksia',
     },
 };
 

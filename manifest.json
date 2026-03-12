@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Kampus Auto Login",
-  "version": "1.0",
-  "description": "Automate the login process for Sanoma Pro Kampus",
+  "version": "1.1",
+  "description": "Automate the repetitive login process for Sanoma Pro Kampus.",
   "permissions": [
     "storage",
     "tabs",
