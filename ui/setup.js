@@ -140,15 +140,29 @@ async function initSchoolSelector(currentLang) {
     const schoolNameHidden = document.getElementById('schoolName');
     let allSchools = [];
 
+    function clearDropdown() {
+        while (dropdown.firstChild) {
+            dropdown.removeChild(dropdown.firstChild);
+        }
+    }
+
+    function showDropdownMessage(className, message) {
+        clearDropdown();
+        const node = document.createElement('div');
+        node.className = className;
+        node.textContent = message;
+        dropdown.appendChild(node);
+    }
+
     // Show loading state
-    dropdown.innerHTML = `<div class="school-loading">${t(currentLang, 'setupSchoolLoading')}</div>`;
+    showDropdownMessage('school-loading', t(currentLang, 'setupSchoolLoading'));
     dropdown.classList.add('active');
 
     // Fetch schools
     allSchools = await fetchSchools();
 
     if (allSchools.length === 0) {
-        dropdown.innerHTML = `<div class="school-error">${t(currentLang, 'setupSchoolLoadError')}</div>`;
+        showDropdownMessage('school-error', t(currentLang, 'setupSchoolLoadError'));
         setTimeout(() => dropdown.classList.remove('active'), 3000);
         return;
     }
@@ -160,27 +174,24 @@ async function initSchoolSelector(currentLang) {
         );
 
         if (filtered.length === 0) {
-            dropdown.innerHTML = `<div class="school-error">${t(currentLang, 'setupSchoolNotFound')}</div>`;
+            showDropdownMessage('school-error', t(currentLang, 'setupSchoolNotFound'));
             return;
         }
 
-        dropdown.innerHTML = filtered
-            .slice(0, 50) // Limit to 50 options
-            .map(school => `
-                <div class="school-option" data-school="${school.name}" data-id="${school.id}">
-                    ${school.name}
-                </div>
-            `)
-            .join('');
-
-        // Add click handlers
-        dropdown.querySelectorAll('.school-option').forEach(option => {
+        clearDropdown();
+        filtered.slice(0, 50).forEach((school) => {
+            const option = document.createElement('div');
+            option.className = 'school-option';
+            option.dataset.school = school.name;
+            option.dataset.id = school.id;
+            option.textContent = school.name;
             option.addEventListener('click', () => {
                 const schoolName = option.getAttribute('data-school');
                 searchInput.value = schoolName;
                 schoolNameHidden.value = schoolName;
                 dropdown.classList.remove('active');
             });
+            dropdown.appendChild(option);
         });
     }
 

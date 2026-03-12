@@ -36,6 +36,26 @@ node scripts/build-variants.mjs chrome
 node scripts/build-variants.mjs firefox
 ```
 
+Create an AMO upload zip (without macOS hidden metadata files):
+
+```bash
+node scripts/package-firefox.mjs
+```
+
+Upload this file to Firefox Add-ons:
+
+- `dist/releases/kampus-auto-login-firefox-v<version>.zip`
+
+Create a Chrome Web Store upload zip:
+
+```bash
+node scripts/package-chrome.mjs
+```
+
+Upload this file to Chrome Web Store:
+
+- `dist/releases/kampus-auto-login-chrome-v<version>.zip`
+
 ### Chrome / Chromium
 
 1. Download the extension source/release and unzip it.
