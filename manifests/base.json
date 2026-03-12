@@ -3,20 +3,26 @@
   "name": "Kampus Auto Login",
   "version": "1.0",
   "description": "Automate the login process for Sanoma Pro Kampus",
-  "permissions": ["storage", "tabs"],
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
   "host_permissions": [
     "https://kirjautuminen.sanomapro.fi/*",
     "https://mpass-proxy.csc.fi/*",
     "https://sanomapro.fi/*",
-    "https://www.sanomapro.fi/*",
-    "https://*/adfs/ls/*"
+    "https://www.sanomapro.fi/*"
   ],
   "action": {
     "default_popup": "ui/popup.html",
     "default_title": "Kampus Auto Login",
-    "default_icon": { "48": "icon48.png" }
+    "default_icon": {
+      "48": "icon48.png"
+    }
   },
-  "icons": { "48": "icon48.png" },
+  "icons": {
+    "48": "icon48.png"
+  },
   "background": {
     "service_worker": "background.js"
   },
@@ -26,23 +32,31 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://kirjautuminen.sanomapro.fi/*"],
-      "js": ["scripts/kirjautuminen-content.js"],
+      "matches": [
+        "https://kirjautuminen.sanomapro.fi/*"
+      ],
+      "js": [
+        "scripts/kirjautuminen-content.js"
+      ],
       "run_at": "document_end"
     },
     {
-      "matches": ["https://mpass-proxy.csc.fi/*"],
-      "js": ["scripts/mpass-content.js"],
+      "matches": [
+        "https://mpass-proxy.csc.fi/*"
+      ],
+      "js": [
+        "scripts/mpass-content.js"
+      ],
       "run_at": "document_end"
     },
     {
-      "matches": ["https://sanomapro.fi/*", "https://www.sanomapro.fi/*"],
-      "js": ["scripts/sanomapro-content.js"],
-      "run_at": "document_end"
-    },
-    {
-      "matches": ["https://*/adfs/ls/*"],
-      "js": ["scripts/adfs-content.js"],
+      "matches": [
+        "https://sanomapro.fi/*",
+        "https://www.sanomapro.fi/*"
+      ],
+      "js": [
+        "scripts/sanomapro-content.js"
+      ],
       "run_at": "document_end"
     }
   ]

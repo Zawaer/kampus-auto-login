@@ -75,6 +75,27 @@ function normalizeDomain(value) {
     return s.replace(/^https?:\/\//, '').replace(/\/.*$/, '').split('/')[0];
 }
 
+function getAdfsPattern(domain) {
+    return `https://${domain}/adfs/ls/*`;
+}
+
+async function ensureAdfsPermission(domain) {
+    const optionalOrigins = extensionApi.runtime.getManifest()?.optional_host_permissions || [];
+    const supportsOptionalAdfs = optionalOrigins.includes('https://*/adfs/ls/*');
+
+    if (!supportsOptionalAdfs || !extensionApi.permissions?.contains || !extensionApi.permissions?.request) {
+        return true;
+    }
+
+    const pattern = getAdfsPattern(domain);
+    const alreadyGranted = await extensionApi.permissions.contains({ origins: [pattern] });
+    if (alreadyGranted) {
+        return true;
+    }
+
+    return await extensionApi.permissions.request({ origins: [pattern] });
+}
+
 // Fetch schools from MPASS API
 async function fetchSchools() {
     try {
@@ -257,6 +278,16 @@ document.addEventListener('DOMContentLoaded', async function () {
         successMsg.style.display = 'none';
         saveBtn.disabled = true;
         try {
+            const granted = await ensureAdfsPermission(domain);
+            if (!granted) {
+                successMsg.textContent = t(currentLang, 'setupPermissionRequired');
+                successMsg.style.color = '#dc3545';
+                successMsg.style.background = '#f8d7da';
+                successMsg.style.display = 'block';
+                saveBtn.disabled = false;
+                return;
+            }
+
             await extensionApi.storage.sync.set({ schoolName, adfsDomain: domain });
             const msg = t(currentLang, 'setupSuccessMsg');
             showSuccessOverlay(msg);

@@ -45,6 +45,13 @@ async function buildTarget(target) {
   const overrideManifest = await readJson(path.join(manifestsDir, targets[target]));
   const mergedManifest = deepMerge(baseManifest, overrideManifest);
 
+  if (target === 'firefox') {
+    // Firefox in this setup expects background scripts instead of MV3 service worker.
+    mergedManifest.background = {
+      scripts: ['background.js']
+    };
+  }
+
   const outDir = path.join(distDir, target);
   await rm(outDir, { recursive: true, force: true });
   await mkdir(outDir, { recursive: true });
