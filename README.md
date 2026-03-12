@@ -60,7 +60,8 @@ Temporary install (for local testing):
 3. In **Koulun nimi / School name**, start typing and select your school from the dropdown.
 4. In **Kirjautumisosoite / Login domain**, enter your municipality/school ADFS domain (example: `sts.edu.espoo.fi`).
 5. Click **Tallenna / Save**.
-6. Return to Kampus and sign in; after that, the extension can automate the flow when enabled.
+6. In Chrome, allow the requested permission for that exact login domain when prompted.
+7. Return to Kampus and sign in; after that, the extension can automate the flow when enabled.
 
 ## Configuration and popup
 
