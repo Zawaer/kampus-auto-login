@@ -30,7 +30,7 @@ const translations = {
         popupProcess3: 'Select correct school → sanomapro.fi',
         popupProcess4: 'Open study materials → kampus.sanomapro.fi',
         popupSchoolLabel: 'School:',
-        popupDomainLabel: 'Domain:',
+        popupDomainLabel: 'Kirjautumisosoite:',
         popupNotSet: 'Not set',
         popupChangeSettings: 'Change settings',
     },
