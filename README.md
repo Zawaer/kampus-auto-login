@@ -75,8 +75,12 @@ The extension uses content scripts that run on specific domains:
 
 - `scripts/kirjautuminen-content.js` — clicks the MPASSid login button on the login page
 - `scripts/mpass-content.js` — handles MPASS proxy flow logic
-- `scripts/adfs-content.js` — handles ADFS page automation with flow checks
 - `scripts/sanomapro-content.js` — redirects from Sanoma Pro landing page to Kampus
+
+ADFS handling:
+
+- Chrome: `scripts/adfs-content.js` is injected dynamically only after the user grants permission for their configured ADFS domain.
+- Firefox: `scripts/adfs-content.js` runs via manifest content script match on `https://*/adfs/ls/*`.
 
 Background and UI files:
 
@@ -86,8 +90,10 @@ Background and UI files:
 
 ## Permissions and privacy
 
-- Uses `storage` and `tabs` permissions.
-- Runs only on declared host permissions in `manifest.json`.
+- Uses `storage` and `tabs` permissions on both browsers.
+- Chrome build also uses `scripting` to inject ADFS automation script only when needed.
+- Chrome requests ADFS host access as optional permission for the exact configured domain.
+- Firefox includes ADFS host permission in its manifest build variant.
 - Does not store credentials or personal identity data.
 - Automates actions you would otherwise do manually.
 
