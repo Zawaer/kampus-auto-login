@@ -6,8 +6,21 @@
 
     const extensionApi = globalThis.browser || globalThis.chrome;
 
+    async function getUiLanguage() {
+        try {
+            const result = await extensionApi.storage.sync.get({ language: 'fi' });
+            return result.language === 'en' ? 'en' : 'fi';
+        } catch (e) {
+            return 'fi';
+        }
+    }
+
+    function getLoggingInLabel(lang) {
+        return lang === 'en' ? 'Logging in...' : 'Kirjaudutaan...';
+    }
+
     // Show a full-screen "Logging in..." overlay with spinner (Shadow DOM to avoid page CSS)
-    function showLoginOverlay() {
+    function showLoginOverlay(message) {
         try {
             if (document.getElementById('kampus-autologin-overlay')) return;
 
@@ -36,7 +49,7 @@
             spinner.className = 'spinner';
             const label = document.createElement('div');
             label.className = 'label';
-            label.textContent = 'Logging in...';
+            label.textContent = message;
 
             card.appendChild(spinner);
             card.appendChild(label);
@@ -177,7 +190,7 @@
             return;
         }
 
-        showLoginOverlay();
+        showLoginOverlay(getLoggingInLabel(await getUiLanguage()));
 
         // Give password managers a moment to autofill fields
         await new Promise((resolve) => setTimeout(resolve, 900));
