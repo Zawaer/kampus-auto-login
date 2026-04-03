@@ -8,8 +8,21 @@
     
     console.log('Kampus Auto Login: Running on mpass-proxy.csc.fi');
 
+    async function getUiLanguage() {
+        try {
+            const result = await extensionApi.storage.sync.get({ language: 'fi' });
+            return result.language === 'en' ? 'en' : 'fi';
+        } catch (e) {
+            return 'fi';
+        }
+    }
+
+    function getLoggingInLabel(lang) {
+        return lang === 'en' ? 'Logging in...' : 'Kirjaudutaan...';
+    }
+
     // Show a full-screen "Logging in..." overlay with spinner (Shadow DOM to avoid page CSS)
-    function showLoginOverlay() {
+    function showLoginOverlay(message) {
         try {
             if (document.getElementById('kampus-autologin-overlay')) return;
 
@@ -38,7 +51,7 @@
             spinner.className = 'spinner';
             const label = document.createElement('div');
             label.className = 'label';
-            label.textContent = 'Logging in...';
+            label.textContent = message;
 
             card.appendChild(spinner);
             card.appendChild(label);
@@ -252,7 +265,7 @@
         }
         
         console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
-        showLoginOverlay();
+        showLoginOverlay(getLoggingInLabel(await getUiLanguage()));
         
         // First: try immediate presence of last-selected school (only if it matches configured school)
         const { schoolName } = await extensionApi.storage.sync.get({ schoolName: '' });

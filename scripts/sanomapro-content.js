@@ -8,8 +8,21 @@
     const kampusDirectUrl = 'https://kampus.sanomapro.fi/';
     console.log('Kampus Auto Login: Running on sanomapro.fi');
 
+    async function getUiLanguage() {
+        try {
+            const result = await extensionApi.storage.sync.get({ language: 'fi' });
+            return result.language === 'en' ? 'en' : 'fi';
+        } catch (e) {
+            return 'fi';
+        }
+    }
+
+    function getLoggingInLabel(lang) {
+        return lang === 'en' ? 'Logging in...' : 'Kirjaudutaan...';
+    }
+
     // Show a full-screen "Logging in..." overlay with spinner (Shadow DOM to avoid page CSS)
-    function showLoginOverlay() {
+    function showLoginOverlay(message) {
         try {
             if (document.getElementById('kampus-autologin-overlay')) return;
 
@@ -38,7 +51,7 @@
             spinner.className = 'spinner';
             const label = document.createElement('div');
             label.className = 'label';
-            label.textContent = 'Logging in...';
+            label.textContent = message;
 
             card.appendChild(spinner);
             card.appendChild(label);
@@ -106,7 +119,7 @@
             // Redirect the support page too when it is part of the Kampus flow.
             if (isLandingPage || (isTukiPage && await isKampusFlow())) {
                 console.log('Kampus Auto Login: Redirecting directly to Kampus page');
-                showLoginOverlay();
+                    showLoginOverlay(getLoggingInLabel(await getUiLanguage()));
                 window.location.assign(kampusDirectUrl);
             } else {
                 console.log('Kampus Auto Login: On sanomapro subpage', path, '— not redirecting');
