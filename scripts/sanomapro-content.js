@@ -60,6 +60,32 @@
         }
     }
 
+    async function isKampusFlow() {
+        const allowedHosts = [
+            'sanomapro.fi',
+            'kampus.sanomapro.fi',
+            'kirjautuminen.sanomapro.fi',
+            'mpass-proxy.csc.fi'
+        ];
+
+        try {
+            const referrer = document.referrer || '';
+            if (allowedHosts.some((host) => referrer.includes(host))) {
+                return true;
+            }
+        } catch (e) {}
+
+        try {
+            const { kampusFlowStartedAt } = await extensionApi.storage.local.get({ kampusFlowStartedAt: 0 });
+            const maxAgeMs = 10 * 60 * 1000;
+            if (kampusFlowStartedAt && (Date.now() - kampusFlowStartedAt) < maxAgeMs) {
+                return true;
+            }
+        } catch (e) {}
+
+        return false;
+    }
+
     async function runSanomaProRedirect() {
         if (!await autoLoginEnabled()) {
             console.log('Kampus Auto Login: Auto-login disabled; will not redirect on sanomapro');
@@ -74,8 +100,11 @@
 
         if (host === 'sanomapro.fi' || host === 'www.sanomapro.fi') {
             const path = window.location.pathname;
-            // Only redirect on the root/landing page, not subpages like /tuki, /edut, etc.
-            if (path === '/' || path === '' || path === '/#') {
+            const isLandingPage = path === '/' || path === '' || path === '/#';
+            const isTukiPage = path.startsWith('/tuki');
+
+            // Redirect the support page too when it is part of the Kampus flow.
+            if (isLandingPage || (isTukiPage && await isKampusFlow())) {
                 console.log('Kampus Auto Login: Redirecting directly to Kampus page');
                 showLoginOverlay();
                 window.location.assign(kampusDirectUrl);
