@@ -73,10 +73,10 @@ const extensionApi = globalThis.browser || globalThis.chrome;
 
 async function getLanguage() {
     try {
-        const result = await extensionApi.storage.sync.get({ language: 'fi' });
-        return result.language === 'en' ? 'en' : 'fi';
+        const result = await extensionApi.storage.sync.get({ language: 'en' });
+        return result.language === 'fi' ? 'fi' : 'en';
     } catch (e) {
-        return 'fi';
+        return 'en';
     }
 }
 
@@ -85,13 +85,13 @@ async function setLanguage(lang) {
 }
 
 function t(lang, key) {
-    const dict = translations[lang] || translations.fi;
+    const dict = translations[lang] || translations.en;
     return dict[key] ?? key;
 }
 
 function applyTranslations(lang, scope) {
     const root = scope && scope.querySelectorAll ? scope : document;
-    const dict = translations[lang] || translations.fi;
+    const dict = translations[lang] || translations.en;
     root.querySelectorAll('[data-i18n]').forEach((el) => {
         const key = el.getAttribute('data-i18n');
         const value = dict[key];
@@ -108,6 +108,6 @@ function applyTranslations(lang, scope) {
         }
     });
     if (typeof document !== 'undefined' && document.documentElement) {
-        document.documentElement.lang = lang === 'en' ? 'en' : 'fi';
+        document.documentElement.lang = lang === 'fi' ? 'fi' : 'en';
     }
 }

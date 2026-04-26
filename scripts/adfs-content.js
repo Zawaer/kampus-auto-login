@@ -8,10 +8,10 @@
 
     async function getUiLanguage() {
         try {
-            const result = await extensionApi.storage.sync.get({ language: 'fi' });
-            return result.language === 'en' ? 'en' : 'fi';
+            const result = await extensionApi.storage.sync.get({ language: 'en' });
+            return result.language === 'fi' ? 'fi' : 'en';
         } catch (e) {
-            return 'fi';
+            return 'en';
         }
     }
 
