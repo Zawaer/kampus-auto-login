@@ -9,7 +9,7 @@ When enabled, the extension automates this flow:
 1. `kampus.sanomapro.fi` → `kirjautuminen.sanomapro.fi`
 2. Clicks the MPASSid login button
 3. Continues through `mpass-proxy.csc.fi`
-4. Handles the ADFS login page for your configured domain
+4. Handles your school login page automatically
 5. Redirects from the `sanomapro.fi` landing page back to `https://kampus.sanomapro.fi/`
 
 Demo video:
@@ -20,7 +20,7 @@ https://github.com/user-attachments/assets/1f1bc9f3-0441-4a0a-99f4-9d9563dbec1a
 
 Install directly from browser stores:
 
-- Chrome Web Store: link coming after the extension gets approved
+- Chrome Web Store: https://chromewebstore.google.com/detail/kampus-auto-login/jnlidjmljocgjaapbnmfjbkcmghmogkd
 - Firefox Add-ons: https://addons.mozilla.org/en-US/firefox/addon/kampus-auto-login/
 
 Build browser-specific packages first:
@@ -41,25 +41,23 @@ node scripts/build-variants.mjs chrome
 node scripts/build-variants.mjs firefox
 ```
 
-Create an AMO upload zip (without macOS hidden metadata files):
+Create upload zips for both browsers:
 
 ```bash
-node scripts/package-firefox.mjs
+node scripts/package-variants.mjs
 ```
 
-Upload this file to Firefox Add-ons:
-
-- `dist/releases/kampus-auto-login-firefox-v<version>.zip`
-
-Create a Chrome Web Store upload zip:
-
-```bash
-node scripts/package-chrome.mjs
-```
-
-Upload this file to Chrome Web Store:
+This creates:
 
 - `dist/releases/kampus-auto-login-chrome-v<version>.zip`
+- `dist/releases/kampus-auto-login-firefox-v<version>.zip`
+
+You can also package just one target:
+
+```bash
+node scripts/package-variants.mjs chrome
+node scripts/package-variants.mjs firefox
+```
 
 ### Chrome / Chromium
 
@@ -81,46 +79,17 @@ Temporary install (for local testing):
 ## Quick tutorial (first-time setup)
 
 1. Click the extension icon and open **Change settings**.
-2. Choose language (Suomi / English).
-3. In **Koulun nimi / School name**, start typing and select your school from the dropdown.
-4. In **Kirjautumisosoite / Login domain**, enter your municipality/school ADFS domain (example: `sts.edu.espoo.fi`).
-5. Click **Tallenna / Save**.
-6. In Chrome, allow the requested permission for that exact login domain when prompted.
-7. Return to Kampus and sign in; after that, the extension can automate the flow when enabled.
-
-## Configuration and popup
-
-- **Enable Auto Login** toggle controls whether automation runs.
-- Popup shows the currently saved school and login domain.
-- Settings are stored in browser sync storage (`schoolName`, `adfsDomain`, `autoLoginEnabled`, `language`).
-
-## How it works
-
-The extension uses content scripts that run on specific domains:
-
-- `scripts/kirjautuminen-content.js` — clicks the MPASSid login button on the login page
-- `scripts/mpass-content.js` — handles MPASS proxy flow logic
-- `scripts/sanomapro-content.js` — redirects from Sanoma Pro landing page to Kampus
-
-ADFS handling:
-
-- Chrome: `scripts/adfs-content.js` is injected dynamically only after the user grants permission for their configured ADFS domain.
-- Firefox: `scripts/adfs-content.js` runs via manifest content script match on `https://*/adfs/ls/*`.
-
-Background and UI files:
-
-- `background.js` — background message handling
-- `ui/popup.html`, `ui/popup.js`, `ui/popup.css` — popup UI
-- `ui/setup.html`, `ui/setup.js`, `ui/i18n.js` — setup page and translations
+2. In **Koulun nimi / School name**, start typing and select your school from the dropdown.
+3. In **Kirjautumisosoite / Login domain**, enter your municipality/school ADFS domain (example: `sts.edu.espoo.fi`).
+4. Click **Tallenna / Save**.
+5. Allow the requested permission for that exact login domain when prompted.
+6. Return to Kampus and sign in; after that, the extension can automate the flow when enabled.
 
 ## Permissions and privacy
 
-- Uses `storage` and `tabs` permissions on both browsers.
-- Chrome build also uses `scripting` to inject ADFS automation script only when needed.
-- Chrome requests ADFS host access as optional permission for the exact configured domain.
-- Firefox includes ADFS host permission in its manifest build variant.
-- Does not store credentials or personal identity data.
-- Automates actions you would otherwise do manually.
+This extension only stores the settings needed to automate login (school name, login domain, on/off state, and language), and those settings stay in your browser's extension storage.
+
+It does not store your password or other sensitive personal data.
 
 ## License
 

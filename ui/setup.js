@@ -79,6 +79,33 @@ function getAdfsPattern(domain) {
     return `https://${domain}/adfs/ls/*`;
 }
 
+const lockedSchoolDomains = {
+    'Otaniemen lukio': 'sts.edu.espoo.fi'
+};
+
+function getLockedSchoolDomain(schoolName) {
+    return lockedSchoolDomains[schoolName] || '';
+}
+
+function applySchoolDomainRules(schoolName, domainInput) {
+    const formGroup = domainInput.closest('.form-group');
+    const lockedDomain = getLockedSchoolDomain(schoolName);
+
+    if (lockedDomain) {
+        domainInput.value = lockedDomain;
+        domainInput.required = false;
+        if (formGroup) {
+            formGroup.hidden = true;
+        }
+        return;
+    }
+
+    domainInput.required = true;
+    if (formGroup) {
+        formGroup.hidden = false;
+    }
+}
+
 async function ensureAdfsPermission(domain) {
     const optionalOrigins = extensionApi.runtime.getManifest()?.optional_host_permissions || [];
     const supportsOptionalAdfs = optionalOrigins.includes('https://*/adfs/ls/*');
@@ -189,6 +216,7 @@ async function initSchoolSelector(currentLang) {
                 const schoolName = option.getAttribute('data-school');
                 searchInput.value = schoolName;
                 schoolNameHidden.value = schoolName;
+                applySchoolDomainRules(schoolName, document.getElementById('adfsDomain'));
                 dropdown.classList.remove('active');
             });
             dropdown.appendChild(option);
@@ -201,6 +229,7 @@ async function initSchoolSelector(currentLang) {
         if (stored.schoolName) {
             searchInput.value = stored.schoolName;
             schoolNameHidden.value = stored.schoolName;
+            applySchoolDomainRules(stored.schoolName, document.getElementById('adfsDomain'));
         }
     } catch (e) {
         console.error('Error loading stored school:', e);
@@ -255,6 +284,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     } catch (e) {
         console.error('Error loading settings:', e);
     }
+
+    applySchoolDomainRules(storageResult.schoolName, domainInput);
 
     applyTranslations(currentLang);
 
