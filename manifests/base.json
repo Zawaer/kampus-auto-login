@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Kampus Auto Login",
-  "version": "1.3",
+  "version": "1.4",
   "description": "Automate the repetitive login process for Sanoma Pro Kampus",
   "permissions": [
     "storage",
@@ -17,11 +17,17 @@
     "default_popup": "ui/popup.html",
     "default_title": "Kampus Auto Login",
     "default_icon": {
-      "48": "icon48.png"
+      "32": "icon32.png",
+      "48": "icon48.png",
+      "64": "icon64.png"
     }
   },
   "icons": {
-    "48": "icon48.png"
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "64": "icon64.png",
+    "96": "icon96.png",
+    "128": "icon128.png"
   },
   "background": {
     "service_worker": "background.js"
