@@ -12,7 +12,7 @@ When enabled, the extension automates this flow:
 4. Handles your school login page automatically
 5. Redirects from the `sanomapro.fi` landing page back to `https://kampus.sanomapro.fi/`
 
-Demo video:
+Demo video (not the latest version, but it works identically):
 
 https://github.com/user-attachments/assets/1f1bc9f3-0441-4a0a-99f4-9d9563dbec1a
 
@@ -34,13 +34,6 @@ This creates:
 - `dist/chrome/`
 - `dist/firefox/`
 
-You can also build just one target:
-
-```bash
-node scripts/build-variants.mjs chrome
-node scripts/build-variants.mjs firefox
-```
-
 Create upload zips for both browsers:
 
 ```bash
@@ -51,13 +44,6 @@ This creates:
 
 - `dist/releases/kampus-auto-login-chrome-v<version>.zip`
 - `dist/releases/kampus-auto-login-firefox-v<version>.zip`
-
-You can also package just one target:
-
-```bash
-node scripts/package-variants.mjs chrome
-node scripts/package-variants.mjs firefox
-```
 
 ### Chrome / Chromium
 
