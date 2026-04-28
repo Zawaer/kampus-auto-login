@@ -71,6 +71,16 @@
         }
     }
 
+    async function isAutofillAutoContinueEnabled() {
+        try {
+            const result = await extensionApi.storage.sync.get({ autoFillCredentialsEnabled: true });
+            return result.autoFillCredentialsEnabled;
+        } catch (error) {
+            console.error('Kampus Auto Login: Error reading autofill setting on ADFS page', error);
+            return true;
+        }
+    }
+
     function hideLoginOverlay() {
         try {
             const overlay = document.getElementById('kampus-autologin-overlay');
@@ -182,6 +192,11 @@
 
         if (!(await isAutoLoginEnabled())) {
             console.log('Kampus Auto Login: Auto-login disabled, skipping ADFS Sign in click');
+            return;
+        }
+
+        if (!(await isAutofillAutoContinueEnabled())) {
+            console.log('Kampus Auto Login: Autofill auto-continue disabled, skipping ADFS auto-click');
             return;
         }
 

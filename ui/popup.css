@@ -60,6 +60,12 @@ body {
     font-size: 15px;
     color: #495057;
 }
+.toggle-description {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #6c757d;
+    line-height: 1.45;
+}
 
 .toggle-switch {
     position: relative;
@@ -210,6 +216,22 @@ input:checked + .slider:before {
 }
 .btn-secondary:hover {
     transform: translateY(-1px);
+}
+.btn-settings {
+    width: 100%;
+    margin-top: 12px;
+    padding: 11px 14px;
+    border: 1px solid #643695;
+    background: linear-gradient(180deg, #7a49a9 0%, #643695 100%);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(100, 54, 149, 0.18);
+}
+.btn-settings:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(100, 54, 149, 0.22);
+}
+.btn-settings:active {
+    transform: translateY(0);
 }
 
 .footer {

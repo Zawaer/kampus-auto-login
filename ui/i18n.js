@@ -24,6 +24,8 @@ const translations = {
         // Popup page
         popupTitle: 'Kampus Auto Login',
         popupEnableToggle: 'Enable Auto Login',
+        popupAutofillToggle: 'Use autofilled credentials automatically',
+        popupAutofillDescription: 'If your browser fills in the username and password, the extension continues the login automatically.',
         popupInfoText: 'When enabled, this extension will automatically navigate through the Kampus login process:',
         popupProcess1: 'kampus.sanomapro.fi → kirjautuminen.sanomapro.fi',
         popupProcess2: 'Click MPASSid login button → mpass-proxy.csc.fi',
@@ -57,6 +59,8 @@ const translations = {
         // Popup page
         popupTitle: 'Kampus Auto Login',
         popupEnableToggle: 'Ota automaattinen kirjautuminen käyttöön',
+        popupAutofillToggle: 'Käytä selaimen täyttämiä tunnuksia automaattisesti',
+        popupAutofillDescription: 'Jos selain täyttää käyttäjätunnuksen ja salasanan, laajennus jatkaa kirjautumista automaattisesti.',
         popupInfoText: 'Kun käytössä, laajennus ohjaa automaattisesti Kampus-kirjautumisprosessin läpi:',
         popupProcess1: 'kampus.sanomapro.fi → kirjautuminen.sanomapro.fi',
         popupProcess2: 'Klikkaa MPASSid-kirjautumista → mpass-proxy.csc.fi',
