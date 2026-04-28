@@ -4,29 +4,8 @@
 (function () {
     'use strict';
 
-    const extensionApi = globalThis.browser || globalThis.chrome;
+    const browserApi = globalThis.browser || globalThis.chrome;
     const isFirefoxLikeBrowser = /Firefox\//.test(navigator.userAgent || '');
-
-    async function getUiLanguage() {
-        try {
-            const result = await extensionApi.storage.sync.get({ language: 'en' });
-            return result.language === 'fi' ? 'fi' : 'en';
-        } catch (e) {
-            return 'en';
-        }
-    }
-
-    function getClickToContinueLabel(lang) {
-        return lang === 'en'
-            ? 'Click anywhere or press any key to continue'
-            : 'Jatka napsauttamalla mitä tahansa tai painamalla mitä tahansa näppäintä';
-    }
-
-    function getClickToContinueDescription(lang) {
-        return lang === 'en'
-            ? 'Chrome needs page focus before the extension can continue.'
-            : 'Chrome tarvitsee sivun fokuksen ennen kuin laajennus voi jatkaa.';
-    }
 
     function showContinueHint(titleMessage, subtitleMessage) {
         try {
@@ -44,7 +23,7 @@
             style.textContent = [
                 ':host { all: initial; position: fixed; inset: 0; z-index: 2147483646; pointer-events: none; }',
                 '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; }',
-                '.card { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(440px, calc(100vw - 32px)); padding: 28px 32px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; text-align: center; }',
+                '.card { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(360px, calc(100vw - 32px)); padding: 28px 32px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; text-align: center; }',
                 '.title { font-size: 18px; font-weight: 600; color: #643695; line-height: 1.3; }',
                 '.subtitle { font-size: 14px; line-height: 1.45; color: #495057; }'
             ].join('\n');
@@ -82,7 +61,7 @@
 
     async function isAutoLoginEnabled() {
         try {
-            const result = await extensionApi.storage.sync.get({ autoLoginEnabled: true });
+            const result = await browserApi.storage.sync.get({ autoLoginEnabled: true });
             return result.autoLoginEnabled;
         } catch (error) {
             console.error('Kampus Auto Login: Error reading settings on ADFS page', error);
@@ -92,7 +71,7 @@
 
     async function isAutofillAutoContinueEnabled() {
         try {
-            const result = await extensionApi.storage.sync.get({ autoFillCredentialsEnabled: true });
+            const result = await browserApi.storage.sync.get({ autoFillCredentialsEnabled: true });
             return result.autoFillCredentialsEnabled;
         } catch (error) {
             console.error('Kampus Auto Login: Error reading autofill setting on ADFS page', error);
@@ -256,7 +235,7 @@
         const currentHost = window.location.hostname;
         let configuredDomain;
         try {
-            const result = await extensionApi.storage.sync.get({ adfsDomain: '' });
+            const result = await browserApi.storage.sync.get({ adfsDomain: '' });
             configuredDomain = result.adfsDomain;
         } catch (e) {
             configuredDomain = '';
@@ -288,11 +267,11 @@
             return;
         }
 
-        const uiLanguage = await getUiLanguage();
+        const uiLanguage = await getLanguage();
         if (!isFirefoxLikeBrowser) {
             showContinueHint(
-                getClickToContinueLabel(uiLanguage),
-                getClickToContinueDescription(uiLanguage)
+                t(uiLanguage, 'adfsContinueTitle'),
+                t(uiLanguage, 'adfsContinueDescription')
             );
         }
 

@@ -42,6 +42,7 @@
         "https://kirjautuminen.sanomapro.fi/*"
       ],
       "js": [
+        "ui/i18n.js",
         "scripts/kirjautuminen-content.js"
       ],
       "run_at": "document_end"
@@ -51,6 +52,7 @@
         "https://mpass-proxy.csc.fi/*"
       ],
       "js": [
+        "ui/i18n.js",
         "scripts/mpass-content.js"
       ],
       "run_at": "document_end"
@@ -61,6 +63,7 @@
         "https://www.sanomapro.fi/*"
       ],
       "js": [
+        "ui/i18n.js",
         "scripts/sanomapro-content.js"
       ],
       "run_at": "document_end"

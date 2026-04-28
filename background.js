@@ -55,7 +55,7 @@ async function injectAdfsContentScript(tabId, tabUrl) {
     try {
         await extensionApi.scripting.executeScript({
             target: { tabId },
-            files: ['scripts/adfs-content.js']
+            files: ['ui/i18n.js', 'scripts/adfs-content.js']
         });
     } catch (e) {
         console.error('Kampus Auto Login: Failed to inject ADFS script', e);
