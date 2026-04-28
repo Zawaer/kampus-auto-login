@@ -8,19 +8,6 @@
     
     console.log('Kampus Auto Login: Running on kirjautuminen.sanomapro.fi');
 
-    async function getUiLanguage() {
-        try {
-            const result = await extensionApi.storage.sync.get({ language: 'en' });
-            return result.language === 'fi' ? 'fi' : 'en';
-        } catch (e) {
-            return 'en';
-        }
-    }
-
-    function getLoggingInLabel(lang) {
-        return lang === 'en' ? 'Logging in...' : 'Kirjaudutaan...';
-    }
-
     // Show a full-screen "Logging in..." overlay with spinner (Shadow DOM to avoid page CSS)
     function showLoginOverlay(message) {
         try {
@@ -286,7 +273,8 @@
         }
         
         console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
-        showLoginOverlay(getLoggingInLabel(await getUiLanguage()));
+        const uiLanguage = await getLanguage();
+        showLoginOverlay(t(uiLanguage, 'commonLoggingInLabel'));
         
         if (findAndClickMPASSButton()) {
             return;

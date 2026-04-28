@@ -35,6 +35,13 @@ const translations = {
         popupDomainLabel: 'Domain:',
         popupNotSet: 'Not set',
         popupChangeSettings: 'Change settings',
+
+        // Shared labels
+        commonLoggingInLabel: 'Logging in...',
+
+        // ADFS page
+        adfsContinueTitle: 'Click anywhere or press any key to continue',
+        adfsContinueDescription: 'Chrome needs page focus before the extension can continue.',
     },
     fi: {
         // Setup page
@@ -70,6 +77,13 @@ const translations = {
         popupDomainLabel: 'Kirjautumisosoite:',
         popupNotSet: 'Ei asetettu',
         popupChangeSettings: 'Muuta asetuksia',
+
+        // Shared labels
+        commonLoggingInLabel: 'Kirjaudutaan...',
+
+        // ADFS page
+        adfsContinueTitle: 'Jatka napsauttamalla mitä tahansa kohtaa tai painamalla mitä tahansa näppäintä',
+        adfsContinueDescription: 'Chrome tarvitsee sivun fokuksen ennen kuin laajennus voi jatkaa.',
     },
 };
 
