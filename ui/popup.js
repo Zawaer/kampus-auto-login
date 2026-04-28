@@ -122,9 +122,3 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 });
-
-extensionApi.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'updateStatus') {
-        console.log('Status update from content script:', request.data);
-    }
-});

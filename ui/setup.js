@@ -148,7 +148,9 @@ async function initSchoolSelector(currentLang) {
     const searchInput = document.getElementById('schoolSearch');
     const dropdown = document.getElementById('schoolDropdown');
     const schoolNameHidden = document.getElementById('schoolName');
+    const domainInput = document.getElementById('adfsDomain');
     let allSchoolNames = [];
+    let searchableSchoolNames = [];
 
     const errorMessage = document.getElementById('schoolErrorMessage');
 
@@ -181,6 +183,10 @@ async function initSchoolSelector(currentLang) {
     dropdown.classList.add('active');
 
     allSchoolNames = await loadSchoolNames();
+    searchableSchoolNames = allSchoolNames.map((schoolName) => ({
+        schoolName,
+        normalizedName: schoolName.toLowerCase()
+    }));
 
     if (allSchoolNames.length === 0) {
         dropdown.classList.remove('active');
@@ -192,8 +198,9 @@ async function initSchoolSelector(currentLang) {
 
     // Render schools based on filter
     function renderSchools(filter = '') {
-        const filtered = allSchoolNames.filter((schoolName) =>
-            schoolName.toLowerCase().includes(filter.toLowerCase())
+        const normalizedFilter = filter.toLowerCase();
+        const filtered = searchableSchoolNames.filter(({ normalizedName }) =>
+            normalizedName.includes(normalizedFilter)
         );
 
         if (filtered.length === 0) {
@@ -202,7 +209,7 @@ async function initSchoolSelector(currentLang) {
         }
 
         clearDropdown();
-        filtered.slice(0, 50).forEach((schoolName) => {
+        filtered.slice(0, 50).forEach(({ schoolName }) => {
             const option = document.createElement('div');
             option.className = 'school-option';
             option.dataset.school = schoolName;
@@ -210,7 +217,7 @@ async function initSchoolSelector(currentLang) {
             option.addEventListener('click', () => {
                 searchInput.value = schoolName;
                 schoolNameHidden.value = schoolName;
-                applySchoolDomainRules(schoolName, document.getElementById('adfsDomain'));
+                applySchoolDomainRules(schoolName, domainInput);
                 dropdown.classList.remove('active');
             });
             dropdown.appendChild(option);
@@ -223,7 +230,7 @@ async function initSchoolSelector(currentLang) {
         if (stored.schoolName) {
             searchInput.value = stored.schoolName;
             schoolNameHidden.value = stored.schoolName;
-            applySchoolDomainRules(stored.schoolName, document.getElementById('adfsDomain'));
+            applySchoolDomainRules(stored.schoolName, domainInput);
         }
     } catch (e) {
         console.error('Error loading stored school:', e);
@@ -232,10 +239,14 @@ async function initSchoolSelector(currentLang) {
     // Search on input
     searchInput.addEventListener('input', (e) => {
         const filter = e.target.value.trim();
+        schoolNameHidden.value = '';
+        applySchoolDomainRules(filter, domainInput);
+
         if (filter.length === 0) {
             dropdown.classList.remove('active');
             return;
         }
+
         hideErrorMessage();
         renderSchools(filter);
         dropdown.classList.add('active');
