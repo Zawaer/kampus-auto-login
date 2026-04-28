@@ -28,7 +28,8 @@ const translations = {
         popupSchoolLabel: 'School:',
         popupDomainLabel: 'Domain:',
         popupNotSet: 'Not set',
-        popupChangeSettings: 'Change settings',
+        popupChangeSettings: 'Settings',
+        popupReportBug: 'Report a bug',
 
         // Shared labels
         commonLoggingInLabel: 'Logging in...',
@@ -69,7 +70,8 @@ const translations = {
         popupSchoolLabel: 'Koulu:',
         popupDomainLabel: 'Kirjautumisosoite:',
         popupNotSet: 'Ei asetettu',
-        popupChangeSettings: 'Muuta asetuksia',
+        popupChangeSettings: 'Asetukset',
+        popupReportBug: 'Ilmoita ongelmasta',
 
         // Shared labels
         commonLoggingInLabel: 'Kirjaudutaan...',
