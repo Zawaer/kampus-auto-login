@@ -5,6 +5,72 @@
     'use strict';
 
     const extensionApi = globalThis.browser || globalThis.chrome;
+    const isFirefoxLikeBrowser = /Firefox\//.test(navigator.userAgent || '');
+
+    async function getUiLanguage() {
+        try {
+            const result = await extensionApi.storage.sync.get({ language: 'en' });
+            return result.language === 'fi' ? 'fi' : 'en';
+        } catch (e) {
+            return 'en';
+        }
+    }
+
+    function getLoggingInLabel(lang) {
+        return lang === 'en' ? 'Logging in...' : 'Kirjaudutaan...';
+    }
+
+    function showLoginOverlay(message) {
+        try {
+            if (document.getElementById('kampus-autologin-overlay')) return;
+
+            const overlay = document.createElement('div');
+            overlay.id = 'kampus-autologin-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.inset = '0';
+            overlay.style.zIndex = '2147483646';
+
+            const shadowRoot = overlay.attachShadow({ mode: 'open' });
+            const style = document.createElement('style');
+            style.textContent = [
+                ':host { all: initial; position: fixed; inset: 0; z-index: 2147483646; }',
+                '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }',
+                '.card { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 28px 40px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; }',
+                '.spinner { width: 28px; height: 28px; border: 3px solid rgba(0,0,0,0.12); border-top-color: #643695; border-radius: 50%; animation: kampus-spin 0.7s linear infinite; }',
+                '.label { font-size: 15px; font-weight: 500; letter-spacing: 0.3px; }',
+                '@keyframes kampus-spin { to { transform: rotate(360deg); } }'
+            ].join('\n');
+
+            const overlayWrap = document.createElement('div');
+            overlayWrap.className = 'overlay';
+            const card = document.createElement('div');
+            card.className = 'card';
+            const spinner = document.createElement('div');
+            spinner.className = 'spinner';
+            const label = document.createElement('div');
+            label.className = 'label';
+            label.textContent = message;
+
+            card.appendChild(spinner);
+            card.appendChild(label);
+            overlayWrap.appendChild(card);
+            shadowRoot.appendChild(style);
+            shadowRoot.appendChild(overlayWrap);
+
+            document.documentElement.appendChild(overlay);
+        } catch (e) {}
+    }
+
+    function hideLoginOverlay() {
+        try {
+            const overlay = document.getElementById('kampus-autologin-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity 0.2s ease';
+                setTimeout(() => { try { overlay.remove(); } catch (e) {} }, 250);
+            }
+        } catch (e) {}
+    }
 
     async function isAutoLoginEnabled() {
         try {
@@ -78,6 +144,10 @@
     }
 
     function nudgeCredentialFields() {
+        if (isFirefoxLikeBrowser) {
+            return;
+        }
+
         const { userField, passField } = getAdfsElements();
         nudgeField(userField);
         nudgeField(passField);
@@ -90,6 +160,16 @@
         }
 
         try {
+            if (isFirefoxLikeBrowser) {
+                if (typeof signInButton.click === 'function') {
+                    signInButton.click();
+                } else if (form && typeof form.requestSubmit === 'function') {
+                    form.requestSubmit(signInButton);
+                }
+                console.log('Kampus Auto Login: Clicked ADFS Sign in button (Firefox-like)');
+                return true;
+            }
+
             nudgeField(userField);
             nudgeField(passField);
             signInButton.focus && signInButton.focus();
@@ -200,6 +280,10 @@
             return;
         }
 
+        if (isFirefoxLikeBrowser) {
+            showLoginOverlay(getLoggingInLabel(await getUiLanguage()));
+        }
+
         let finished = false;
         let attemptingContinue = false;
 
@@ -213,6 +297,7 @@
                 const state = getCredentialState();
                 if (state.actuallyFilled && clickSignInButton()) {
                     finished = true;
+                    hideLoginOverlay();
                     return true;
                 }
                 return false;
@@ -225,20 +310,27 @@
             tryContinue();
         });
 
-        // Chrome can show autofill styling before values are committed to the page.
-        // Nudge focus/blur and then wait for actual input values only.
-        nudgeCredentialFields();
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        if (tryContinue()) {
+            return;
+        }
+
+        if (!isFirefoxLikeBrowser) {
+            // Chrome can show autofill styling before values are committed to the page.
+            // Nudge focus/blur and then wait for actual input values only.
+            nudgeCredentialFields();
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, isFirefoxLikeBrowser ? 300 : 1500));
 
         if (tryContinue()) {
             return;
         }
 
         let attempts = 0;
-        const maxAttempts = 30;
+        const maxAttempts = isFirefoxLikeBrowser ? 24 : 30;
         const interval = setInterval(() => {
             attempts += 1;
-            if (attempts % 5 === 0) {
+            if (!isFirefoxLikeBrowser && attempts % 5 === 0) {
                 nudgeCredentialFields();
             }
 
@@ -252,10 +344,12 @@
                 const state = getCredentialState();
                 console.log('Kampus Auto Login: ADFS fields never became real input values in time; not clicking Sign in', {
                     userLength: state.userLength,
-                    passLength: state.passLength
+                    passLength: state.passLength,
+                    browser: isFirefoxLikeBrowser ? 'firefox-like' : 'chromium-like'
                 });
+                hideLoginOverlay();
             }
-        }, 400);
+        }, isFirefoxLikeBrowser ? 250 : 400);
     }
 
     if (document.readyState === 'loading') {
