@@ -3,6 +3,7 @@
     margin: 0;
     padding: 0;
 }
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial,
         sans-serif;
@@ -25,17 +26,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
 }
+
 .header h1 {
     font-size: 16px;
     font-weight: 600;
     margin: 0;
-}
-.logo {
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
 }
 
 .content {
@@ -46,25 +42,28 @@ body {
     margin-bottom: 16px;
     padding: 12px;
     background: #f8f9fa;
-    border-radius: 6px;
     border: 1px solid #e9ecef;
+    border-radius: 6px;
 }
+
 .toggle-label {
     display: flex;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
 }
+
 .toggle-text {
     font-weight: 500;
     font-size: 15px;
     color: #495057;
 }
+
 .toggle-description {
     margin-top: 8px;
     font-size: 12px;
-    color: #6c757d;
     line-height: 1.45;
+    color: #6c757d;
 }
 
 .toggle-switch {
@@ -73,6 +72,7 @@ body {
     height: 24px;
     flex-shrink: 0;
 }
+
 .toggle-switch input {
     position: absolute;
     inset: 0;
@@ -82,6 +82,7 @@ body {
     opacity: 0;
     cursor: pointer;
 }
+
 .slider {
     position: absolute;
     inset: 0;
@@ -89,112 +90,43 @@ body {
     border-radius: 24px;
     transition: 0.25s;
 }
+
 .slider:before {
     content: "";
     position: absolute;
-    height: 18px;
-    width: 18px;
     left: 3px;
     bottom: 3px;
+    width: 18px;
+    height: 18px;
     background: #fff;
     border-radius: 50%;
     transition: 0.25s;
 }
+
 input:checked + .slider {
     background: #643695;
 }
+
 input:checked + .slider:before {
     transform: translateX(26px);
-}
-
-.status-section {
-    margin-bottom: 16px;
-}
-.status-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-.status-item:last-child {
-    border-bottom: none;
-}
-.status-label {
-    font-weight: 500;
-    color: #666;
-}
-.status-value {
-    color: #333;
-    font-weight: 500;
-    transition: color 0.25s;
-}
-.status-value.enabled {
-    color: #28a745;
-}
-.status-value.disabled {
-    color: #dc3545;
 }
 
 .municipality-section {
     margin-top: 12px;
     padding: 10px 12px;
     background: #f8f9fa;
-    border-radius: 6px;
     border: 1px solid #e9ecef;
+    border-radius: 6px;
 }
+
 .municipality-label {
+    margin-bottom: 4px;
     font-size: 13px;
     color: #495057;
-    margin-bottom: 4px;
-}
-.change-link {
-    font-size: 12px;
-    color: #643695;
-    text-decoration: none;
-}
-.change-link:hover {
-    text-decoration: underline;
 }
 
-.info-section {
-    margin-bottom: 16px;
-    padding: 12px;
-    background: #fbf8ff;
-    border-left: 4px solid #643695;
-    border-radius: 6px;
-}
-.info-text {
-    margin-bottom: 8px;
-    color: #643695;
-    font-size: 13px;
-}
-
-.process-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-.process-list li {
-    padding: 4px 0;
-    color: #643695;
-    font-size: 12px;
-    position: relative;
-    padding-left: 16px;
-}
-.process-list li:before {
-    content: "→";
-    position: absolute;
-    left: 0;
-    color: #643695;
-    font-weight: 700;
-}
-
-.actions {
-    display: flex;
-    gap: 8px;
-}
 .btn {
+    width: 100%;
     padding: 12px 16px;
     border: 1px solid transparent;
     border-radius: 6px;
@@ -202,31 +134,16 @@ input:checked + .slider:before {
     font-weight: 600;
     line-height: 1.4;
     cursor: pointer;
-    flex: 1;
     transition: background-color 0.2s ease, border-color 0.2s ease,
         color 0.2s ease, box-shadow 0.2s ease;
 }
-.btn-primary {
-    background: #643695;
-    color: #fff;
-}
-.btn-primary:hover {
-    background: #552a7d;
-}
-.btn-secondary {
-    background: #6c757d;
-    color: #fff;
-}
-.btn-secondary:hover {
-    background: #5a6268;
-}
+
 .btn-settings {
-    width: 100%;
     margin-top: 12px;
-    border-color: transparent;
     background: #643695;
     color: #fff;
 }
+
 .btn-settings:hover {
     background: #552a7d;
 }
@@ -234,32 +151,22 @@ input:checked + .slider:before {
 .support-section {
     margin-top: 12px;
 }
+
 .support-link {
     text-decoration: none;
     text-align: center;
 }
+
 .btn-support {
-    width: 100%;
     display: block;
     border: 1px solid #d8cbe8;
     background: #f3edf9;
     color: #5f3b86;
-    text-align: center;
 }
+
 .btn-support:hover {
     background: #e9def5;
     border-color: #cbb9df;
-}
-
-.footer {
-    padding: 10px 16px;
-    background: #f8f9fa;
-    border-top: 1px solid #e9ecef;
-    text-align: center;
-}
-.version {
-    font-size: 11px;
-    color: #6c757d;
 }
 
 /* Focus styles for accessibility */

@@ -24,7 +24,7 @@ const translations = {
         popupTitle: 'Kampus Auto Login',
         popupEnableToggle: 'Enable Auto Login',
         popupAutofillToggle: 'Use autofilled credentials automatically',
-        popupAutofillDescription: 'If your browser fills in thes saved username and password, the extension continues the login automatically.',
+        popupAutofillDescription: 'If your browser fills in the saved username and password, the extension continues the login automatically.',
         popupSchoolLabel: 'School:',
         popupDomainLabel: 'Domain:',
         popupNotSet: 'Not set',
