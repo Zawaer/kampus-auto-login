@@ -79,12 +79,12 @@ function getAdfsPattern(domain) {
     return `https://${domain}/adfs/ls/*`;
 }
 
-const lockedSchoolDomains = {
+const preconfiguredSchoolDomains = {
     'Otaniemen lukio': 'sts.edu.espoo.fi'
 };
 
 function getLockedSchoolDomain(schoolName) {
-    return lockedSchoolDomains[schoolName] || '';
+    return preconfiguredSchoolDomains[schoolName] || '';
 }
 
 function applySchoolDomainRules(schoolName, domainInput) {

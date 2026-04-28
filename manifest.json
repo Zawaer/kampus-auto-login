@@ -21,17 +21,17 @@
     "default_popup": "ui/popup.html",
     "default_title": "Kampus Auto Login",
     "default_icon": {
-      "32": "icon32.png",
-      "48": "icon48.png",
-      "64": "icon64.png"
+      "32": "ui/icons/icon32.png",
+      "48": "ui/icons/icon48.png",
+      "64": "ui/icons/icon64.png"
     }
   },
   "icons": {
-    "32": "icon32.png",
-    "48": "icon48.png",
-    "64": "icon64.png",
-    "96": "icon96.png",
-    "128": "icon128.png"
+    "32": "ui/icons/icon32.png",
+    "48": "ui/icons/icon48.png",
+    "64": "ui/icons/icon64.png",
+    "96": "ui/icons/icon96.png",
+    "128": "ui/icons/icon128.png"
   },
   "background": {
     "service_worker": "background.js"
