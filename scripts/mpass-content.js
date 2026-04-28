@@ -61,6 +61,17 @@
         } catch (e) {}
     }
 
+    function hideSchoolRequiredOverlay() {
+        try {
+            const overlay = document.getElementById('kampus-autologin-school-required');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity 0.2s ease';
+                setTimeout(() => { try { overlay.remove(); } catch (e) {} }, 250);
+            }
+        } catch (e) {}
+    }
+
     function showSchoolRequiredOverlay(titleMessage, descriptionMessage, actionLabel) {
         try {
             if (document.getElementById('kampus-autologin-school-required')) return;
@@ -76,7 +87,9 @@
             style.textContent = [
                 ':host { all: initial; position: fixed; inset: 0; z-index: 2147483647; }',
                 '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; }',
-                '.card { width: min(420px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 12px; padding: 28px 32px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; text-align: center; }',
+                '.card { position: relative; width: min(420px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 12px; padding: 28px 32px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; text-align: center; }',
+                '.close-button { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border: none; border-radius: 999px; background: transparent; color: #6c757d; font-size: 22px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }',
+                '.close-button:hover { background: rgba(0,0,0,0.06); color: #343a40; }',
                 '.title { font-size: 18px; font-weight: 700; line-height: 1.3; color: #721c24; }',
                 '.description { font-size: 14px; line-height: 1.5; color: #495057; }',
                 '.button { margin-top: 4px; width: 100%; padding: 11px 14px; border: 1px solid #643695; border-radius: 10px; background: linear-gradient(180deg, #7a49a9 0%, #643695 100%); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 6px 16px rgba(100, 54, 149, 0.18); }',
@@ -88,6 +101,12 @@
             overlay.className = 'overlay';
             const card = document.createElement('div');
             card.className = 'card';
+            const closeButton = document.createElement('button');
+            closeButton.type = 'button';
+            closeButton.className = 'close-button';
+            closeButton.setAttribute('aria-label', 'Close');
+            closeButton.textContent = '×';
+            closeButton.addEventListener('click', hideSchoolRequiredOverlay);
             const title = document.createElement('div');
             title.className = 'title';
             title.textContent = titleMessage;
@@ -110,6 +129,7 @@
                 }
             });
 
+            card.appendChild(closeButton);
             card.appendChild(title);
             card.appendChild(description);
             card.appendChild(button);
