@@ -3,6 +3,7 @@
 
 document.addEventListener('DOMContentLoaded', async function() {
     const toggle = document.getElementById('autoLoginToggle');
+    const autofillToggle = document.getElementById('autoFillToggle');
     const schoolDisplay = document.getElementById('schoolDisplay');
     const domainDisplay = document.getElementById('domainDisplay');
     const changeLink = document.getElementById('changeMunicipality');
@@ -12,9 +13,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     await loadSettings(lang);
     toggle.addEventListener('change', handleToggleChange);
+    autofillToggle.addEventListener('change', handleAutofillToggleChange);
 
-    changeLink.addEventListener('click', function(e) {
-        e.preventDefault();
+    changeLink.addEventListener('click', function() {
         if (extensionApi.runtime.openOptionsPage) {
             extensionApi.runtime.openOptionsPage();
         } else {
@@ -26,17 +27,20 @@ document.addEventListener('DOMContentLoaded', async function() {
         try {
             const result = await extensionApi.storage.sync.get({
                 autoLoginEnabled: true,
+                autoFillCredentialsEnabled: true,
                 schoolName: '',
                 adfsDomain: ''
             });
 
             toggle.checked = result.autoLoginEnabled;
+            autofillToggle.checked = result.autoFillCredentialsEnabled;
             const notSet = t(lang, 'popupNotSet');
             schoolDisplay.textContent = result.schoolName || notSet;
             domainDisplay.textContent = result.adfsDomain || notSet;
         } catch (error) {
             console.error('Error loading settings:', error);
             toggle.checked = true;
+            autofillToggle.checked = true;
         }
     }
 
@@ -53,6 +57,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
+    async function handleAutofillToggleChange() {
+        const isEnabled = autofillToggle.checked;
+
+        try {
+            await extensionApi.storage.sync.set({
+                autoFillCredentialsEnabled: isEnabled
+            });
+        } catch (error) {
+            console.error('Error saving autofill setting:', error);
+            autofillToggle.checked = !isEnabled;
+        }
+    }
+
     // Add keyboard support
     document.addEventListener('keydown', function(event) {
         if (event.key === ' ' || event.key === 'Enter') {
@@ -60,6 +77,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 event.preventDefault();
                 toggle.checked = !toggle.checked;
                 handleToggleChange();
+            } else if (event.target === autofillToggle) {
+                event.preventDefault();
+                autofillToggle.checked = !autofillToggle.checked;
+                handleAutofillToggleChange();
             }
         }
     });

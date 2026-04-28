@@ -167,6 +167,8 @@ async function initSchoolSelector(currentLang) {
     const schoolNameHidden = document.getElementById('schoolName');
     let allSchools = [];
 
+    const errorMessage = document.getElementById('schoolErrorMessage');
+
     function clearDropdown() {
         while (dropdown.firstChild) {
             dropdown.removeChild(dropdown.firstChild);
@@ -181,6 +183,16 @@ async function initSchoolSelector(currentLang) {
         dropdown.appendChild(node);
     }
 
+    function showErrorMessage(message) {
+        errorMessage.textContent = message;
+        errorMessage.classList.add('show');
+    }
+
+    function hideErrorMessage() {
+        errorMessage.classList.remove('show');
+        errorMessage.textContent = '';
+    }
+
     // Show loading state
     showDropdownMessage('school-loading', t(currentLang, 'setupSchoolLoading'));
     dropdown.classList.add('active');
@@ -189,10 +201,12 @@ async function initSchoolSelector(currentLang) {
     allSchools = await fetchSchools();
 
     if (allSchools.length === 0) {
-        showDropdownMessage('school-error', t(currentLang, 'setupSchoolLoadError'));
-        setTimeout(() => dropdown.classList.remove('active'), 3000);
+        dropdown.classList.remove('active');
+        showErrorMessage(t(currentLang, 'setupSchoolLoadError'));
         return;
     }
+
+    hideErrorMessage();
 
     // Render schools based on filter
     function renderSchools(filter = '') {
@@ -242,6 +256,7 @@ async function initSchoolSelector(currentLang) {
             dropdown.classList.remove('active');
             return;
         }
+        hideErrorMessage();
         renderSchools(filter);
         dropdown.classList.add('active');
     });
