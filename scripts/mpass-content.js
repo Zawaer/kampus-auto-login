@@ -360,8 +360,8 @@
             }
         }
 
-        // Wait for the last-selected school to appear (short timeout). If it matches config, click and stop.
-        const observedLast = await observeSelector('#selectedList > div > div.listItem > div', 3000);
+        // Wait briefly for the last-selected school to appear. If it matches config, click and stop.
+        const observedLast = await observeSelector('#selectedList > div > div.listItem > div', 2000);
         if (observedLast && searchTerm) {
             const lastText = (observedLast.textContent || '').toLowerCase();
             if (lastText.includes(searchTerm) || searchTerm.split(/\s+/).some((p) => lastText.includes(p))) {
