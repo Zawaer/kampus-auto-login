@@ -123,39 +123,22 @@ async function ensureAdfsPermission(domain) {
     return await extensionApi.permissions.request({ origins: [pattern] });
 }
 
-// Fetch schools from MPASS API
-async function fetchSchools() {
+async function loadSchoolNames() {
     try {
-        const response = await fetch('https://mpass-proxy.csc.fi/api/v2/authnsources', {
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-        if (!response.ok) throw new Error('API error');
+        const response = await fetch(extensionApi.runtime.getURL('school_names.json'));
+        if (!response.ok) throw new Error('Failed to load bundled school list');
+
         const data = await response.json();
-        
-        // Parse schools from the response
-        // Response has { title, lista: [ { schools: [ { school, schoolCode, ... }, ... ], ... }, ... ] }
-        if (data.lista && Array.isArray(data.lista)) {
-            const schools = [];
-            data.lista.forEach(org => {
-                if (org.schools && Array.isArray(org.schools)) {
-                    org.schools.forEach(school => {
-                        if (school.school) {
-                            schools.push({
-                                name: school.school,
-                                id: school.schoolCode || school.school
-                            });
-                        }
-                    });
-                }
-            });
-            return schools;
+        if (!Array.isArray(data)) {
+            throw new Error('Bundled school list is not an array');
         }
-        return [];
+
+        return data
+            .filter((name) => typeof name === 'string')
+            .map((name) => name.trim())
+            .filter(Boolean);
     } catch (e) {
-        console.error('Failed to fetch schools:', e);
+        console.error('Failed to load school names:', e);
         return [];
     }
 }
@@ -165,7 +148,7 @@ async function initSchoolSelector(currentLang) {
     const searchInput = document.getElementById('schoolSearch');
     const dropdown = document.getElementById('schoolDropdown');
     const schoolNameHidden = document.getElementById('schoolName');
-    let allSchools = [];
+    let allSchoolNames = [];
 
     const errorMessage = document.getElementById('schoolErrorMessage');
 
@@ -197,10 +180,9 @@ async function initSchoolSelector(currentLang) {
     showDropdownMessage('school-loading', t(currentLang, 'setupSchoolLoading'));
     dropdown.classList.add('active');
 
-    // Fetch schools
-    allSchools = await fetchSchools();
+    allSchoolNames = await loadSchoolNames();
 
-    if (allSchools.length === 0) {
+    if (allSchoolNames.length === 0) {
         dropdown.classList.remove('active');
         showErrorMessage(t(currentLang, 'setupSchoolLoadError'));
         return;
@@ -210,8 +192,8 @@ async function initSchoolSelector(currentLang) {
 
     // Render schools based on filter
     function renderSchools(filter = '') {
-        const filtered = allSchools.filter(school => 
-            school.name.toLowerCase().includes(filter.toLowerCase())
+        const filtered = allSchoolNames.filter((schoolName) =>
+            schoolName.toLowerCase().includes(filter.toLowerCase())
         );
 
         if (filtered.length === 0) {
@@ -220,14 +202,12 @@ async function initSchoolSelector(currentLang) {
         }
 
         clearDropdown();
-        filtered.slice(0, 50).forEach((school) => {
+        filtered.slice(0, 50).forEach((schoolName) => {
             const option = document.createElement('div');
             option.className = 'school-option';
-            option.dataset.school = school.name;
-            option.dataset.id = school.id;
-            option.textContent = school.name;
+            option.dataset.school = schoolName;
+            option.textContent = schoolName;
             option.addEventListener('click', () => {
-                const schoolName = option.getAttribute('data-school');
                 searchInput.value = schoolName;
                 schoolNameHidden.value = schoolName;
                 applySchoolDomainRules(schoolName, document.getElementById('adfsDomain'));
