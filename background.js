@@ -6,6 +6,58 @@ function getAdfsPattern(domain) {
     return `https://${domain}/adfs/ls/*`;
 }
 
+async function openSetupPage() {
+    if (extensionApi.runtime?.openOptionsPage) {
+        await extensionApi.runtime.openOptionsPage();
+        return { opened: true, tabId: null, method: 'options' };
+    }
+
+    const setupUrl = extensionApi.runtime.getURL('ui/setup.html');
+    return await new Promise((resolve, reject) => {
+        extensionApi.tabs.create({ url: setupUrl }, (tab) => {
+            if (extensionApi.runtime.lastError) {
+                reject(extensionApi.runtime.lastError);
+                return;
+            }
+            resolve({ opened: true, tabId: tab?.id || null, method: 'tab' });
+        });
+    });
+}
+
+async function closeSetupPage() {
+    const setupUrl = extensionApi.runtime.getURL('ui/setup.html');
+    return await new Promise((resolve, reject) => {
+        extensionApi.tabs.query({ url: setupUrl }, (tabs) => {
+            if (extensionApi.runtime.lastError) {
+                reject(extensionApi.runtime.lastError);
+                return;
+            }
+
+            tabs.forEach((tab) => {
+                if (tab.id != null) {
+                    extensionApi.tabs.remove(tab.id);
+                }
+            });
+
+            resolve({ closed: tabs.length });
+        });
+    });
+}
+
+function sendAsyncResponse(sendResponse, action) {
+    action()
+        .then((result) => sendResponse(result))
+        .catch((error) => {
+            console.error('Kampus Auto Login:', error);
+            sendResponse({
+                opened: false,
+                closed: 0,
+                error: error?.message || String(error)
+            });
+        });
+}
+
+
 async function shouldInjectAdfs(tabUrl) {
     if (!tabUrl) return false;
 
@@ -64,17 +116,20 @@ async function injectAdfsContentScript(tabId, tabUrl) {
 
 extensionApi.runtime.onInstalled.addListener((details) => {
     if (details.reason === 'install') {
-        extensionApi.tabs.create({ url: extensionApi.runtime.getURL('ui/setup.html') });
+        openSetupPage().catch((error) => {
+            console.error('Kampus Auto Login: Failed to open setup page on install', error);
+        });
     }
 });
 
 extensionApi.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'openSetupPage') {
+        sendAsyncResponse(sendResponse, openSetupPage);
+        return true;
+    }
+
     if (request.action === 'closeSetupTab') {
-        const setupUrl = extensionApi.runtime.getURL('ui/setup.html');
-        extensionApi.tabs.query({ url: setupUrl }, (tabs) => {
-            tabs.forEach((tab) => extensionApi.tabs.remove(tab.id));
-            sendResponse({ closed: tabs.length });
-        });
+        sendAsyncResponse(sendResponse, closeSetupPage);
         return true;
     }
 });

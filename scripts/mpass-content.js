@@ -61,6 +61,67 @@
         } catch (e) {}
     }
 
+    function showSchoolRequiredOverlay(titleMessage, descriptionMessage, actionLabel) {
+        try {
+            if (document.getElementById('kampus-autologin-school-required')) return;
+
+            const host = document.createElement('div');
+            host.id = 'kampus-autologin-school-required';
+            host.style.position = 'fixed';
+            host.style.inset = '0';
+            host.style.zIndex = '2147483647';
+
+            const shadowRoot = host.attachShadow({ mode: 'open' });
+            const style = document.createElement('style');
+            style.textContent = [
+                ':host { all: initial; position: fixed; inset: 0; z-index: 2147483647; }',
+                '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; }',
+                '.card { width: min(420px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 12px; padding: 28px 32px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; text-align: center; }',
+                '.title { font-size: 18px; font-weight: 700; line-height: 1.3; color: #721c24; }',
+                '.description { font-size: 14px; line-height: 1.5; color: #495057; }',
+                '.button { margin-top: 4px; width: 100%; padding: 11px 14px; border: 1px solid #643695; border-radius: 10px; background: linear-gradient(180deg, #7a49a9 0%, #643695 100%); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 6px 16px rgba(100, 54, 149, 0.18); }',
+                '.button:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(100, 54, 149, 0.22); }',
+                '.button:active { transform: translateY(0); }'
+            ].join('\n');
+
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay';
+            const card = document.createElement('div');
+            card.className = 'card';
+            const title = document.createElement('div');
+            title.className = 'title';
+            title.textContent = titleMessage;
+            const description = document.createElement('div');
+            description.className = 'description';
+            description.textContent = descriptionMessage;
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'button';
+            button.textContent = actionLabel;
+            button.addEventListener('click', () => {
+                try {
+                    extensionApi.runtime.sendMessage({ action: 'openSetupPage' }, () => {
+                        if (extensionApi.runtime.lastError) {
+                            console.error('Kampus Auto Login: Failed to open settings page', extensionApi.runtime.lastError);
+                        }
+                    });
+                } catch (error) {
+                    console.error('Kampus Auto Login: Failed to open settings page', error);
+                }
+            });
+
+            card.appendChild(title);
+            card.appendChild(description);
+            card.appendChild(button);
+            overlay.appendChild(card);
+            shadowRoot.appendChild(style);
+            shadowRoot.appendChild(overlay);
+            document.documentElement.appendChild(host);
+        } catch (error) {
+            console.error('Kampus Auto Login: Failed to show school-required overlay', error);
+        }
+    }
+
     // Check if auto-login is enabled before proceeding
     async function checkAutoLoginEnabled() {
         try {
@@ -251,13 +312,24 @@
             return;
         }
         
-        console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
         const uiLanguage = await getLanguage();
+        const { schoolName } = await extensionApi.storage.sync.get({ schoolName: '' });
+        const searchTerm = (schoolName || '').trim().toLowerCase();
+        if (!searchTerm) {
+            console.log('Kampus Auto Login: No school configured, waiting for user to choose one in settings');
+            hideLoginOverlay();
+            showSchoolRequiredOverlay(
+                t(uiLanguage, 'mpassSchoolRequiredTitle'),
+                t(uiLanguage, 'mpassSchoolRequiredDescription'),
+                t(uiLanguage, 'mpassSchoolRequiredAction')
+            );
+            return;
+        }
+
+        console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
         showLoginOverlay(t(uiLanguage, 'commonLoggingInLabel'));
         
         // First: try immediate presence of last-selected school (only if it matches configured school)
-        const { schoolName } = await extensionApi.storage.sync.get({ schoolName: '' });
-        const searchTerm = (schoolName || '').trim().toLowerCase();
         const lastNow = document.querySelector('#selectedList > div > div.listItem > div');
         if (lastNow && searchTerm) {
             const lastText = (lastNow.textContent || '').toLowerCase();
@@ -287,6 +359,12 @@
 
         if (result === 'no_school_configured') {
             console.log('Kampus Auto Login: Configure your school in extension options');
+            hideLoginOverlay();
+            showSchoolRequiredOverlay(
+                t(uiLanguage, 'mpassSchoolRequiredTitle'),
+                t(uiLanguage, 'mpassSchoolRequiredDescription'),
+                t(uiLanguage, 'mpassSchoolRequiredAction')
+            );
             return;
         }
 
