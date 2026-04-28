@@ -15,13 +15,42 @@ document.addEventListener('DOMContentLoaded', async function() {
     toggle.addEventListener('change', handleToggleChange);
     autofillToggle.addEventListener('change', handleAutofillToggleChange);
 
-    changeLink.addEventListener('click', function() {
-        if (extensionApi.runtime.openOptionsPage) {
-            extensionApi.runtime.openOptionsPage();
-        } else {
-            extensionApi.tabs.create({ url: extensionApi.runtime.getURL('ui/setup.html') });
+    changeLink.addEventListener('click', openSettings);
+
+    async function openSettings() {
+        try {
+            if (extensionApi.runtime?.openOptionsPage) {
+                await extensionApi.runtime.openOptionsPage();
+                window.close();
+                return;
+            }
+
+            await new Promise((resolve, reject) => {
+                extensionApi.runtime.sendMessage({ action: 'openSetupPage' }, (response) => {
+                    if (extensionApi.runtime.lastError) {
+                        reject(extensionApi.runtime.lastError);
+                        return;
+                    }
+
+                    if (response?.opened === false) {
+                        reject(new Error(response.error || 'Failed to open settings page'));
+                        return;
+                    }
+
+                    resolve(response);
+                });
+            });
+            window.close();
+        } catch (error) {
+            console.error('Error opening settings page:', error);
+            try {
+                await extensionApi.tabs.create({ url: extensionApi.runtime.getURL('ui/setup.html') });
+                window.close();
+            } catch (fallbackError) {
+                console.error('Fallback settings open failed:', fallbackError);
+            }
         }
-    });
+    }
 
     async function loadSettings(lang) {
         try {
@@ -37,12 +66,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             const notSet = t(lang, 'popupNotSet');
             schoolDisplay.textContent = result.schoolName || notSet;
             domainDisplay.textContent = result.adfsDomain || notSet;
+            return result;
         } catch (error) {
             console.error('Error loading settings:', error);
             toggle.checked = true;
             autofillToggle.checked = true;
+            return {
+                autoLoginEnabled: true,
+                autoFillCredentialsEnabled: true,
+                schoolName: '',
+                adfsDomain: ''
+            };
         }
     }
+
 
     async function handleToggleChange() {
         const isEnabled = toggle.checked;

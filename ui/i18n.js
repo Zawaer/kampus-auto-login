@@ -33,9 +33,14 @@ const translations = {
         // Shared labels
         commonLoggingInLabel: 'Logging in...',
 
+        // MPASS page
+        mpassSchoolRequiredTitle: 'School selection required',
+        mpassSchoolRequiredDescription: 'Select a school in the extension settings so auto login can continue.',
+        mpassSchoolRequiredAction: 'Open settings',
+
         // ADFS page
         adfsContinueTitle: 'Click anywhere or press any key to continue',
-        adfsContinueDescription: 'Chrome needs page focus before the extension can continue.',
+        adfsContinueDescription: 'Chrome needs page focus so the login process can continue.',
     },
     fi: {
         // Setup page
@@ -69,9 +74,14 @@ const translations = {
         // Shared labels
         commonLoggingInLabel: 'Kirjaudutaan...',
 
+        // MPASS page
+        mpassSchoolRequiredTitle: 'Koulun valinta puuttuu',
+        mpassSchoolRequiredDescription: 'Valitse koulu laajennuksen asetuksista jotta automaattinen kirjautuminen voi jatkua.',
+        mpassSchoolRequiredAction: 'Avaa asetukset',
+
         // ADFS page
-        adfsContinueTitle: 'Jatka napsauttamalla mitä tahansa kohtaa tai painamalla mitä tahansa näppäintä',
-        adfsContinueDescription: 'Chrome tarvitsee sivun fokuksen ennen kuin laajennus voi jatkaa.',
+        adfsContinueTitle: 'Jatka klikkaamalla mistä tahansa tai painamalla mitä tahansa näppäintä',
+        adfsContinueDescription: 'Chrome tarvitsee sivun fokuksen jotta kirjautuminen voi jatkua.',
     },
 };
 
