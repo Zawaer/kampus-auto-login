@@ -6,61 +6,6 @@
 
     const extensionApi = globalThis.browser || globalThis.chrome;
 
-    async function getUiLanguage() {
-        try {
-            const result = await extensionApi.storage.sync.get({ language: 'en' });
-            return result.language === 'fi' ? 'fi' : 'en';
-        } catch (e) {
-            return 'en';
-        }
-    }
-
-    function getLoggingInLabel(lang) {
-        return lang === 'en' ? 'Logging in...' : 'Kirjaudutaan...';
-    }
-
-    // Show a full-screen "Logging in..." overlay with spinner (Shadow DOM to avoid page CSS)
-    function showLoginOverlay(message) {
-        try {
-            if (document.getElementById('kampus-autologin-overlay')) return;
-
-            const overlay = document.createElement('div');
-            overlay.id = 'kampus-autologin-overlay';
-            overlay.style.position = 'fixed';
-            overlay.style.inset = '0';
-            overlay.style.zIndex = '2147483646';
-
-            const shadowRoot = overlay.attachShadow({ mode: 'open' });
-            const style = document.createElement('style');
-            style.textContent = [
-                ':host { all: initial; position: fixed; inset: 0; z-index: 2147483646; }',
-                '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }',
-                '.card { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 28px 40px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; }',
-                '.spinner { width: 28px; height: 28px; border: 3px solid rgba(0,0,0,0.12); border-top-color: #643695; border-radius: 50%; animation: kampus-spin 0.7s linear infinite; }',
-                '.label { font-size: 15px; font-weight: 500; letter-spacing: 0.3px; }',
-                '@keyframes kampus-spin { to { transform: rotate(360deg); } }'
-            ].join('\n');
-
-            const overlayWrap = document.createElement('div');
-            overlayWrap.className = 'overlay';
-            const card = document.createElement('div');
-            card.className = 'card';
-            const spinner = document.createElement('div');
-            spinner.className = 'spinner';
-            const label = document.createElement('div');
-            label.className = 'label';
-            label.textContent = message;
-
-            card.appendChild(spinner);
-            card.appendChild(label);
-            overlayWrap.appendChild(card);
-            shadowRoot.appendChild(style);
-            shadowRoot.appendChild(overlayWrap);
-
-            document.documentElement.appendChild(overlay);
-        } catch (e) {}
-    }
-
     async function isAutoLoginEnabled() {
         try {
             const result = await extensionApi.storage.sync.get({ autoLoginEnabled: true });
@@ -79,17 +24,6 @@
             console.error('Kampus Auto Login: Error reading autofill setting on ADFS page', error);
             return true;
         }
-    }
-
-    function hideLoginOverlay() {
-        try {
-            const overlay = document.getElementById('kampus-autologin-overlay');
-            if (overlay) {
-                overlay.style.opacity = '0';
-                overlay.style.transition = 'opacity 0.2s ease';
-                setTimeout(() => { try { overlay.remove(); } catch (e) {} }, 250);
-            }
-        } catch (e) {}
     }
 
     function isVisible(element) {
@@ -118,42 +52,11 @@
         const userValue = (userField && userField.value || '').trim();
         const passValue = (passField && passField.value || '').trim();
 
-        let userLooksAutofilled = false;
-        let passLooksAutofilled = false;
-        try {
-            userLooksAutofilled = !!(userField && typeof userField.matches === 'function' && userField.matches(':-webkit-autofill'));
-        } catch (e) {}
-        try {
-            passLooksAutofilled = !!(passField && typeof passField.matches === 'function' && passField.matches(':-webkit-autofill'));
-        } catch (e) {}
-
         return {
-            hasUserField: !!userField,
-            hasPassField: !!passField,
-            userVisible: !!(userField && isVisible(userField)),
-            passVisible: !!(passField && isVisible(passField)),
             userLength: userValue.length,
             passLength: passValue.length,
-            userLooksAutofilled,
-            passLooksAutofilled,
             actuallyFilled: userValue.length > 0 && passValue.length > 0
         };
-    }
-
-    function logCredentialState(prefix) {
-        const state = getCredentialState();
-        console.log('Kampus Auto Login:', prefix, {
-            hasUserField: state.hasUserField,
-            hasPassField: state.hasPassField,
-            userVisible: state.userVisible,
-            passVisible: state.passVisible,
-            userLength: state.userLength,
-            passLength: state.passLength,
-            userLooksAutofilled: state.userLooksAutofilled,
-            passLooksAutofilled: state.passLooksAutofilled,
-            actuallyFilled: state.actuallyFilled
-        });
-        return state;
     }
 
     function credentialsActuallyFilled() {
@@ -167,12 +70,6 @@
 
         try {
             field.focus();
-        } catch (e) {}
-
-        try {
-            field.dispatchEvent(new Event('input', { bubbles: true }));
-            field.dispatchEvent(new Event('change', { bubbles: true }));
-            field.dispatchEvent(new Event('blur', { bubbles: true }));
         } catch (e) {}
 
         try {
@@ -303,40 +200,29 @@
             return;
         }
 
-        // Hidden for Chrome autofill debugging: avoid any chance that the overlay affects focus/autofill behavior.
-        logCredentialState('Initial ADFS credential state');
-
         let finished = false;
-        let lastLoggedStateKey = '';
+        let attemptingContinue = false;
 
-        const tryContinue = (reason = 'periodic check') => {
-            if (finished) {
-                return true;
+        const tryContinue = () => {
+            if (finished || attemptingContinue) {
+                return finished;
             }
 
-            const state = getCredentialState();
-            const stateKey = `${state.userLength}:${state.passLength}:${state.userLooksAutofilled}:${state.passLooksAutofilled}`;
-            if (stateKey !== lastLoggedStateKey) {
-                lastLoggedStateKey = stateKey;
-                console.log('Kampus Auto Login: ADFS credential check', {
-                    reason,
-                    userLength: state.userLength,
-                    passLength: state.passLength,
-                    userLooksAutofilled: state.userLooksAutofilled,
-                    passLooksAutofilled: state.passLooksAutofilled,
-                    actuallyFilled: state.actuallyFilled
-                });
+            attemptingContinue = true;
+            try {
+                const state = getCredentialState();
+                if (state.actuallyFilled && clickSignInButton()) {
+                    finished = true;
+                    return true;
+                }
+                return false;
+            } finally {
+                attemptingContinue = false;
             }
-
-            if (state.actuallyFilled && clickSignInButton()) {
-                finished = true;
-                return true;
-            }
-            return false;
         };
 
         installFieldWatchers(() => {
-            tryContinue('field event');
+            tryContinue();
         });
 
         // Chrome can show autofill styling before values are committed to the page.
@@ -344,7 +230,7 @@
         nudgeCredentialFields();
         await new Promise((resolve) => setTimeout(resolve, 1500));
 
-        if (tryContinue('after initial wait')) {
+        if (tryContinue()) {
             return;
         }
 
@@ -356,15 +242,18 @@
                 nudgeCredentialFields();
             }
 
-            if (tryContinue(`poll ${attempts}`)) {
+            if (tryContinue()) {
                 clearInterval(interval);
                 return;
             }
 
             if (attempts >= maxAttempts) {
                 clearInterval(interval);
-                console.log('Kampus Auto Login: ADFS fields never became real input values in time; not clicking Sign in');
-                logCredentialState('Final ADFS credential state before giving up');
+                const state = getCredentialState();
+                console.log('Kampus Auto Login: ADFS fields never became real input values in time; not clicking Sign in', {
+                    userLength: state.userLength,
+                    passLength: state.passLength
+                });
             }
         }, 400);
     }
