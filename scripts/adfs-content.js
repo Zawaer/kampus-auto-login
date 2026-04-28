@@ -104,27 +104,97 @@
         return rect.width > 0 && rect.height > 0;
     }
 
-    function credentialsLikelyFilled() {
+    function getAdfsElements() {
         const userField = document.querySelector('#userNameInput, input[name="UserName"], input[type="email"], input[type="text"]');
         const passField = document.querySelector('#passwordInput, input[name="Password"], input[type="password"]');
+        const signInButton = document.querySelector('#submitButton');
+        const form = (signInButton && signInButton.form) || (passField && passField.form) || document.querySelector('form');
 
-        if (!passField) {
-            return false;
+        return { userField, passField, signInButton, form };
+    }
+
+    function getCredentialState() {
+        const { userField, passField } = getAdfsElements();
+        const userValue = (userField && userField.value || '').trim();
+        const passValue = (passField && passField.value || '').trim();
+
+        let userLooksAutofilled = false;
+        let passLooksAutofilled = false;
+        try {
+            userLooksAutofilled = !!(userField && typeof userField.matches === 'function' && userField.matches(':-webkit-autofill'));
+        } catch (e) {}
+        try {
+            passLooksAutofilled = !!(passField && typeof passField.matches === 'function' && passField.matches(':-webkit-autofill'));
+        } catch (e) {}
+
+        return {
+            hasUserField: !!userField,
+            hasPassField: !!passField,
+            userVisible: !!(userField && isVisible(userField)),
+            passVisible: !!(passField && isVisible(passField)),
+            userLength: userValue.length,
+            passLength: passValue.length,
+            userLooksAutofilled,
+            passLooksAutofilled,
+            actuallyFilled: userValue.length > 0 && passValue.length > 0
+        };
+    }
+
+    function logCredentialState(prefix) {
+        const state = getCredentialState();
+        console.log('Kampus Auto Login:', prefix, {
+            hasUserField: state.hasUserField,
+            hasPassField: state.hasPassField,
+            userVisible: state.userVisible,
+            passVisible: state.passVisible,
+            userLength: state.userLength,
+            passLength: state.passLength,
+            userLooksAutofilled: state.userLooksAutofilled,
+            passLooksAutofilled: state.passLooksAutofilled,
+            actuallyFilled: state.actuallyFilled
+        });
+        return state;
+    }
+
+    function credentialsActuallyFilled() {
+        return getCredentialState().actuallyFilled;
+    }
+
+    function nudgeField(field) {
+        if (!field) {
+            return;
         }
 
-        const userValue = (userField && userField.value || '').trim();
-        const passValue = (passField.value || '').trim();
+        try {
+            field.focus();
+        } catch (e) {}
 
-        return userValue.length > 0 && passValue.length > 0;
+        try {
+            field.dispatchEvent(new Event('input', { bubbles: true }));
+            field.dispatchEvent(new Event('change', { bubbles: true }));
+            field.dispatchEvent(new Event('blur', { bubbles: true }));
+        } catch (e) {}
+
+        try {
+            field.blur();
+        } catch (e) {}
+    }
+
+    function nudgeCredentialFields() {
+        const { userField, passField } = getAdfsElements();
+        nudgeField(userField);
+        nudgeField(passField);
     }
 
     function clickSignInButton() {
-        const signInButton = document.querySelector('#submitButton');
-        if (!signInButton || !isVisible(signInButton)) {
+        const { userField, passField, signInButton, form } = getAdfsElements();
+        if (!signInButton || !isVisible(signInButton) || signInButton.disabled) {
             return false;
         }
 
         try {
+            nudgeField(userField);
+            nudgeField(passField);
             signInButton.focus && signInButton.focus();
             signInButton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
             signInButton.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
@@ -132,11 +202,39 @@
             if (typeof signInButton.click === 'function') {
                 signInButton.click();
             }
+
+            if (form && typeof form.requestSubmit === 'function') {
+                setTimeout(() => {
+                    try {
+                        if (window.location.pathname.startsWith('/adfs/ls/')) {
+                            form.requestSubmit(signInButton);
+                        }
+                    } catch (e) {}
+                }, 250);
+            }
+
             console.log('Kampus Auto Login: Clicked ADFS Sign in button');
             return true;
         } catch (error) {
             console.error('Kampus Auto Login: Failed to click ADFS Sign in button', error);
             return false;
+        }
+    }
+
+    function installFieldWatchers(onFilled) {
+        const { userField, passField } = getAdfsElements();
+        const fields = [userField, passField].filter(Boolean);
+
+        for (const field of fields) {
+            const handler = () => {
+                if (credentialsActuallyFilled()) {
+                    onFilled();
+                }
+            };
+            field.addEventListener('input', handler, { passive: true });
+            field.addEventListener('change', handler, { passive: true });
+            field.addEventListener('blur', handler, { passive: true });
+            field.addEventListener('focus', handler, { passive: true });
         }
     }
 
@@ -205,32 +303,70 @@
             return;
         }
 
-        showLoginOverlay(getLoggingInLabel(await getUiLanguage()));
+        // Hidden for Chrome autofill debugging: avoid any chance that the overlay affects focus/autofill behavior.
+        logCredentialState('Initial ADFS credential state');
 
-        // Give password managers a moment to autofill fields
-        await new Promise((resolve) => setTimeout(resolve, 900));
+        let finished = false;
+        let lastLoggedStateKey = '';
 
-        if (credentialsLikelyFilled()) {
-            if (clickSignInButton()) {
-                return;
+        const tryContinue = (reason = 'periodic check') => {
+            if (finished) {
+                return true;
             }
+
+            const state = getCredentialState();
+            const stateKey = `${state.userLength}:${state.passLength}:${state.userLooksAutofilled}:${state.passLooksAutofilled}`;
+            if (stateKey !== lastLoggedStateKey) {
+                lastLoggedStateKey = stateKey;
+                console.log('Kampus Auto Login: ADFS credential check', {
+                    reason,
+                    userLength: state.userLength,
+                    passLength: state.passLength,
+                    userLooksAutofilled: state.userLooksAutofilled,
+                    passLooksAutofilled: state.passLooksAutofilled,
+                    actuallyFilled: state.actuallyFilled
+                });
+            }
+
+            if (state.actuallyFilled && clickSignInButton()) {
+                finished = true;
+                return true;
+            }
+            return false;
+        };
+
+        installFieldWatchers(() => {
+            tryContinue('field event');
+        });
+
+        // Chrome can show autofill styling before values are committed to the page.
+        // Nudge focus/blur and then wait for actual input values only.
+        nudgeCredentialFields();
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+
+        if (tryContinue('after initial wait')) {
+            return;
         }
 
         let attempts = 0;
-        const maxAttempts = 8;
+        const maxAttempts = 30;
         const interval = setInterval(() => {
             attempts += 1;
-            if (credentialsLikelyFilled() && clickSignInButton()) {
+            if (attempts % 5 === 0) {
+                nudgeCredentialFields();
+            }
+
+            if (tryContinue(`poll ${attempts}`)) {
                 clearInterval(interval);
                 return;
             }
 
             if (attempts >= maxAttempts) {
                 clearInterval(interval);
-                console.log('Kampus Auto Login: ADFS fields were not autofilled in time; not clicking Sign in');
-                hideLoginOverlay();
+                console.log('Kampus Auto Login: ADFS fields never became real input values in time; not clicking Sign in');
+                logCredentialState('Final ADFS credential state before giving up');
             }
-        }, 500);
+        }, 400);
     }
 
     if (document.readyState === 'loading') {
