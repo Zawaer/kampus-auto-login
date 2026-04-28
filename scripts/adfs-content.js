@@ -20,6 +20,10 @@
         return lang === 'en' ? 'Logging in...' : 'Kirjaudutaan...';
     }
 
+    function getClickToContinueLabel(lang) {
+        return lang === 'en' ? 'Click anywhere to continue' : 'Jatka napsauttamalla mitä tahansa';
+    }
+
     function showLoginOverlay(message) {
         try {
             if (document.getElementById('kampus-autologin-overlay')) return;
@@ -68,6 +72,54 @@
                 overlay.style.opacity = '0';
                 overlay.style.transition = 'opacity 0.2s ease';
                 setTimeout(() => { try { overlay.remove(); } catch (e) {} }, 250);
+            }
+        } catch (e) {}
+    }
+
+    function showContinueHint(message) {
+        try {
+            if (document.getElementById('kampus-autologin-hint')) return;
+
+            const host = document.createElement('div');
+            host.id = 'kampus-autologin-hint';
+            host.style.position = 'fixed';
+            host.style.right = '16px';
+            host.style.bottom = '16px';
+            host.style.zIndex = '2147483646';
+            host.style.pointerEvents = 'none';
+
+            const shadowRoot = host.attachShadow({ mode: 'open' });
+            const style = document.createElement('style');
+            style.textContent = [
+                ':host { all: initial; position: fixed; right: 16px; bottom: 16px; z-index: 2147483646; pointer-events: none; }',
+                '.hint { display: flex; align-items: center; gap: 10px; max-width: min(320px, calc(100vw - 32px)); padding: 12px 14px; background: rgba(31, 41, 55, 0.95); color: #fff; border-radius: 12px; box-shadow: 0 10px 24px rgba(0,0,0,0.24); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; }',
+                '.dot { width: 10px; height: 10px; border-radius: 999px; background: #9f7aea; box-shadow: 0 0 0 4px rgba(159, 122, 234, 0.18); flex: 0 0 auto; }',
+                '.label { font-size: 14px; font-weight: 600; line-height: 1.35; }'
+            ].join('\n');
+
+            const wrap = document.createElement('div');
+            wrap.className = 'hint';
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            const label = document.createElement('div');
+            label.className = 'label';
+            label.textContent = message;
+
+            wrap.appendChild(dot);
+            wrap.appendChild(label);
+            shadowRoot.appendChild(style);
+            shadowRoot.appendChild(wrap);
+            document.documentElement.appendChild(host);
+        } catch (e) {}
+    }
+
+    function hideContinueHint() {
+        try {
+            const hint = document.getElementById('kampus-autologin-hint');
+            if (hint) {
+                hint.style.opacity = '0';
+                hint.style.transition = 'opacity 0.2s ease';
+                setTimeout(() => { try { hint.remove(); } catch (e) {} }, 250);
             }
         } catch (e) {}
     }
@@ -280,8 +332,11 @@
             return;
         }
 
+        const uiLanguage = await getUiLanguage();
         if (isFirefoxLikeBrowser) {
-            showLoginOverlay(getLoggingInLabel(await getUiLanguage()));
+            showLoginOverlay(getLoggingInLabel(uiLanguage));
+        } else {
+            showContinueHint(getClickToContinueLabel(uiLanguage));
         }
 
         let finished = false;
@@ -298,6 +353,7 @@
                 if (state.actuallyFilled && clickSignInButton()) {
                     finished = true;
                     hideLoginOverlay();
+                    hideContinueHint();
                     return true;
                 }
                 return false;
@@ -348,6 +404,7 @@
                     browser: isFirefoxLikeBrowser ? 'firefox-like' : 'chromium-like'
                 });
                 hideLoginOverlay();
+                hideContinueHint();
             }
         }, isFirefoxLikeBrowser ? 250 : 400);
     }
