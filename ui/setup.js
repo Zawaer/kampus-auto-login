@@ -289,6 +289,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     const successMsg = document.getElementById('successMsg');
     const langSelect = document.getElementById('langSelect');
 
+    function showFormError(message) {
+        successMsg.textContent = message;
+        successMsg.classList.add('show');
+    }
+
+    function hideFormError() {
+        successMsg.classList.remove('show');
+        successMsg.textContent = '';
+    }
+
     let currentLang = await getLanguage();
     langSelect.value = currentLang;
 
@@ -325,22 +335,16 @@ document.addEventListener('DOMContentLoaded', async function () {
         const domain = normalizeDomain(domainInput.value);
         
         if (!schoolName || !domain) {
-            successMsg.textContent = t(currentLang, 'setupSaveError');
-            successMsg.style.color = '#dc3545';
-            successMsg.style.background = '#f8d7da';
-            successMsg.style.display = 'block';
+            showFormError(t(currentLang, 'setupSaveError'));
             return;
         }
 
-        successMsg.style.display = 'none';
+        hideFormError();
         saveBtn.disabled = true;
         try {
             const granted = await ensureAdfsPermission(domain);
             if (!granted) {
-                successMsg.textContent = t(currentLang, 'setupPermissionRequired');
-                successMsg.style.color = '#dc3545';
-                successMsg.style.background = '#f8d7da';
-                successMsg.style.display = 'block';
+                showFormError(t(currentLang, 'setupPermissionRequired'));
                 saveBtn.disabled = false;
                 return;
             }
@@ -356,10 +360,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             }, 1500);
         } catch (err) {
             console.error('Error saving:', err);
-            successMsg.textContent = t(currentLang, 'setupSaveError');
-            successMsg.style.color = '#dc3545';
-            successMsg.style.background = '#f8d7da';
-            successMsg.style.display = 'block';
+            showFormError(t(currentLang, 'setupSaveError'));
             saveBtn.disabled = false;
         }
     });
