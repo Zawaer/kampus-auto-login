@@ -43,12 +43,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             window.close();
         } catch (error) {
             console.error('Error opening settings page:', error);
-            try {
-                await extensionApi.tabs.create({ url: extensionApi.runtime.getURL('ui/setup.html') });
-                window.close();
-            } catch (fallbackError) {
-                console.error('Fallback settings open failed:', fallbackError);
-            }
         }
     }
 

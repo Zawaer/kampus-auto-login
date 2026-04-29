@@ -3,21 +3,12 @@
 
 async function closeSetupTab() {
     try {
-        const tab = await extensionApi.tabs.getCurrent();
-        if (tab?.id) {
-            await extensionApi.tabs.remove(tab.id);
-            return;
-        }
+        window.close();
     } catch (e) {}
-    try {
-        await new Promise((resolve, reject) => {
-            extensionApi.runtime.sendMessage({ action: 'closeSetupTab' }, (r) => {
-                if (extensionApi.runtime.lastError) reject(extensionApi.runtime.lastError);
-                else resolve(r);
-            });
-        });
-    } catch (e) {
-        throw e;
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    if (!window.closed && !document.hidden) {
+        throw new Error('Window did not close');
     }
 }
 

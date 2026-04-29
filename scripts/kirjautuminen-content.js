@@ -5,61 +5,12 @@
     'use strict';
 
     const extensionApi = globalThis.browser || globalThis.chrome;
-    
+    const contentCommon = globalThis.KampusContentCommon || {};
+    const isVisible = contentCommon.isVisible || (() => false);
+    const showLoadingOverlay = contentCommon.showLoadingOverlay || (() => false);
+    const removeElementWithFade = contentCommon.removeElementWithFade || (() => false);
+
     console.log('Kampus Auto Login: Running on kirjautuminen.sanomapro.fi');
-
-    // Show a full-screen "Logging in..." overlay with spinner (Shadow DOM to avoid page CSS)
-    function showLoginOverlay(message) {
-        try {
-            if (document.getElementById('kampus-autologin-overlay')) return;
-
-            const overlay = document.createElement('div');
-            overlay.id = 'kampus-autologin-overlay';
-            overlay.style.position = 'fixed';
-            overlay.style.inset = '0';
-            overlay.style.zIndex = '2147483646';
-
-            const shadowRoot = overlay.attachShadow({ mode: 'open' });
-            const style = document.createElement('style');
-            style.textContent = [
-                ':host { all: initial; position: fixed; inset: 0; z-index: 2147483646; }',
-                '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }',
-                '.card { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 28px 40px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; }',
-                '.spinner { width: 28px; height: 28px; border: 3px solid rgba(0,0,0,0.12); border-top-color: #643695; border-radius: 50%; animation: kampus-spin 0.7s linear infinite; }',
-                '.label { font-size: 15px; font-weight: 500; letter-spacing: 0.3px; }',
-                '@keyframes kampus-spin { to { transform: rotate(360deg); } }'
-            ].join('\n');
-
-            const overlayWrap = document.createElement('div');
-            overlayWrap.className = 'overlay';
-            const card = document.createElement('div');
-            card.className = 'card';
-            const spinner = document.createElement('div');
-            spinner.className = 'spinner';
-            const label = document.createElement('div');
-            label.className = 'label';
-            label.textContent = message;
-
-            card.appendChild(spinner);
-            card.appendChild(label);
-            overlayWrap.appendChild(card);
-            shadowRoot.appendChild(style);
-            shadowRoot.appendChild(overlayWrap);
-
-            document.documentElement.appendChild(overlay);
-        } catch (e) {}
-    }
-
-    function hideLoginOverlay() {
-        try {
-            const overlay = document.getElementById('kampus-autologin-overlay');
-            if (overlay) {
-                overlay.style.opacity = '0';
-                overlay.style.transition = 'opacity 0.2s ease';
-                setTimeout(() => { try { overlay.remove(); } catch (e) {} }, 250);
-            }
-        } catch (e) {}
-    }
     
     // Check if auto-login is enabled before proceeding
     async function checkAutoLoginEnabled() {
@@ -103,18 +54,6 @@
         const viewportArea = Math.max(1, window.innerWidth * window.innerHeight);
         const elementArea = rect.width * rect.height;
         return elementArea > viewportArea * 0.35;
-    }
-
-    function isVisible(element) {
-        if (!element) {
-            return false;
-        }
-        const style = window.getComputedStyle(element);
-        if (style.display === 'none' || style.visibility === 'hidden' || style.pointerEvents === 'none') {
-            return false;
-        }
-        const rect = element.getBoundingClientRect();
-        return rect.width > 0 && rect.height > 0;
     }
 
     function pickTopmostAtCenter(element) {
@@ -274,7 +213,7 @@
         
         console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
         const uiLanguage = await getLanguage();
-        showLoginOverlay(t(uiLanguage, 'commonLoggingInLabel'));
+        showLoadingOverlay(t(uiLanguage, 'commonLoggingInLabel'));
         
         if (findAndClickMPASSButton()) {
             return;
@@ -289,7 +228,7 @@
                 clearInterval(interval);
                 if (attempts >= maxAttempts) {
                     console.log('Kampus Auto Login: Could not find MPASSid button after', maxAttempts, 'attempts');
-                    hideLoginOverlay();
+                    removeElementWithFade('kampus-autologin-overlay');
                 }
             }
         }, 1000);

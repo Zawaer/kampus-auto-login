@@ -5,28 +5,33 @@
     'use strict';
 
     const browserApi = globalThis.browser || globalThis.chrome;
+    const contentCommon = globalThis.KampusContentCommon || {};
+    const createShadowHost = contentCommon.createShadowHost || (() => null);
+    const appendShadowStyles = contentCommon.appendShadowStyles || (() => null);
+    const isVisible = contentCommon.isVisible || (() => false);
+    const removeElementWithFade = contentCommon.removeElementWithFade || (() => false);
+    const includesKampusHost = contentCommon.includesKampusHost || (() => false);
+    const referrerIncludesKampusHost = contentCommon.referrerIncludesKampusHost || (() => false);
     const isFirefoxLikeBrowser = /Firefox\//.test(navigator.userAgent || '');
 
     function showContinueHint(titleMessage, subtitleMessage) {
         try {
-            if (document.getElementById('kampus-autologin-hint')) return;
+            const created = createShadowHost('kampus-autologin-hint', {
+                zIndex: 2147483646,
+                pointerEvents: 'none'
+            });
+            if (!created) {
+                return;
+            }
 
-            const host = document.createElement('div');
-            host.id = 'kampus-autologin-hint';
-            host.style.position = 'fixed';
-            host.style.inset = '0';
-            host.style.zIndex = '2147483646';
-            host.style.pointerEvents = 'none';
-
-            const shadowRoot = host.attachShadow({ mode: 'open' });
-            const style = document.createElement('style');
-            style.textContent = [
+            const { host, shadowRoot } = created;
+            appendShadowStyles(shadowRoot, [
                 ':host { all: initial; position: fixed; inset: 0; z-index: 2147483646; pointer-events: none; }',
                 '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; }',
                 '.card { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(360px, calc(100vw - 32px)); padding: 28px 32px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; text-align: center; }',
                 '.title { font-size: 18px; font-weight: 600; color: #643695; line-height: 1.3; }',
                 '.subtitle { font-size: 14px; line-height: 1.45; color: #495057; }'
-            ].join('\n');
+            ]);
 
             const overlay = document.createElement('div');
             overlay.className = 'overlay';
@@ -42,20 +47,8 @@
             card.appendChild(title);
             card.appendChild(subtitle);
             overlay.appendChild(card);
-            shadowRoot.appendChild(style);
             shadowRoot.appendChild(overlay);
             document.documentElement.appendChild(host);
-        } catch (e) {}
-    }
-
-    function hideContinueHint() {
-        try {
-            const hint = document.getElementById('kampus-autologin-hint');
-            if (hint) {
-                hint.style.opacity = '0';
-                hint.style.transition = 'opacity 0.2s ease';
-                setTimeout(() => { try { hint.remove(); } catch (e) {} }, 250);
-            }
         } catch (e) {}
     }
 
@@ -77,18 +70,6 @@
             console.error('Kampus Auto Login: Error reading autofill setting on ADFS page', error);
             return true;
         }
-    }
-
-    function isVisible(element) {
-        if (!element) {
-            return false;
-        }
-        const style = window.getComputedStyle(element);
-        if (style.display === 'none' || style.visibility === 'hidden' || style.pointerEvents === 'none') {
-            return false;
-        }
-        const rect = element.getBoundingClientRect();
-        return rect.width > 0 && rect.height > 0;
     }
 
     function getAdfsElements() {
@@ -203,32 +184,15 @@
     }
 
     function isKampusFlow() {
-        const allowedHosts = [
-            'sanomapro.fi',
-            'kampus.sanomapro.fi',
-            'kirjautuminen.sanomapro.fi',
-            'mpass-proxy.csc.fi'
-        ];
-
         try {
             const params = new URLSearchParams(window.location.search);
             const relayState = params.get('RelayState');
-            if (relayState) {
-                const decoded = decodeURIComponent(relayState);
-                if (allowedHosts.some((host) => decoded.includes(host))) {
-                    return true;
-                }
-            }
-        } catch (e) {}
-
-        try {
-            const referrer = document.referrer || '';
-            if (allowedHosts.some((host) => referrer.includes(host))) {
+            if (relayState && includesKampusHost(decodeURIComponent(relayState))) {
                 return true;
             }
         } catch (e) {}
 
-        return false;
+        return referrerIncludesKampusHost();
     }
 
     async function runADFSAutomation() {
@@ -288,7 +252,7 @@
                 const state = getCredentialState();
                 if (state.actuallyFilled && clickSignInButton()) {
                     finished = true;
-                    hideContinueHint();
+                    removeElementWithFade('kampus-autologin-hint');
                     return true;
                 }
                 return false;
