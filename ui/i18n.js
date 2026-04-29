@@ -19,7 +19,6 @@ const translations = {
         setupLangLabel: 'Language:',
         setupLangFi: 'Finnish',
         setupLangEn: 'English',
-        setupVersionLabel: 'Version',
 
         // Popup page
         popupTitle: 'Kampus Auto Login',
@@ -27,8 +26,6 @@ const translations = {
         popupAutoLoginDescription: 'Enable automatic login',
         popupAutofillToggle: 'Use autofilled credentials',
         popupAutofillDescription: 'Continue login when browser fills saved username and password',
-        popupSchoolLabel: 'School:',
-        popupDomainLabel: 'Login domain:',
         popupNotSet: 'Not set',
         popupChangeSettings: 'Settings',
         popupReportBug: 'Report a bug',
@@ -43,7 +40,7 @@ const translations = {
 
         // ADFS page
         adfsContinueTitle: 'Click anywhere or press any key to continue...',
-        adfsContinueDescription: 'Chrome protects autofilled passwords by not exposing them to the page until the login form is interacted with. Clicking anywhere or pressing any key lets the browser finish applying the saved credentials, so Kampus Auto Login can continue logging in.',
+        adfsContinueDescription: 'Chrome protects autofilled passwords by not exposing them to the page until the login form is interacted with. Clicking anywhere or pressing any key lets the browser finish applying the saved credentials, so the extension can continue logging in.',
     },
     fi: {
         // Setup page
@@ -63,7 +60,6 @@ const translations = {
         setupLangLabel: 'Kieli:',
         setupLangFi: 'Suomi',
         setupLangEn: 'Englanti',
-        setupVersionLabel: 'Versio',
 
         // Popup page
         popupTitle: 'Kampus Auto Login',
@@ -71,8 +67,6 @@ const translations = {
         popupAutoLoginDescription: 'Ota automaattinen kirjautuminen käyttöön',
         popupAutofillToggle: 'Käytä selaimen täyttämiä tunnuksia',
         popupAutofillDescription: 'Jatka kirjautumista, kun selain täyttää tallennetun käyttäjänimen ja salasanan',
-        popupSchoolLabel: 'Koulu:',
-        popupDomainLabel: 'Kirjautumisosoite:',
         popupNotSet: 'Ei asetettu',
         popupChangeSettings: 'Asetukset',
         popupReportBug: 'Ilmoita ongelmasta',
@@ -87,7 +81,7 @@ const translations = {
 
         // ADFS page
         adfsContinueTitle: 'Jatka klikkaamalla mistä tahansa tai painamalla mitä tahansa näppäintä...',
-        adfsContinueDescription: 'Chrome suojaa automaattisesti täytettyjä salasanoja näyttämättä niitä sivulla, ennen kuin käyttäjä on vuorovaikutuksessa kirjautumislomakkeen kanssa. Klikkaamalla jostain tai painamalla jotain näppäintä selain voi täyttää automaattisesti täytetyt salasanat, jolloin Kampus Auto Login voi jatkaa kirjautumista.',
+        adfsContinueDescription: 'Chrome suojaa selaimen automaattisesti täyttämiä salasanoja eikä anna sivun nähdä niitä ennen kuin kirjautumislomaketta käytetään. Klikkaaminen tai näppäimen painaminen antaa selaimen viimeistellä tallennettujen tunnusten täyttämisen, jotta laajennus voi jatkaa kirjautumista.',
     },
 };
 
