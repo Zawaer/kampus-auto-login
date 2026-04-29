@@ -16,12 +16,12 @@ https://github.com/user-attachments/assets/df75f88c-db5c-43bb-a896-f4618fda40c9
 
 ## Installation
 
-### Install directly from browser stores
+### Install from the browser stores
 
 - Chrome Web Store: https://chromewebstore.google.com/detail/kampus-auto-login/jnlidjmljocgjaapbnmfjbkcmghmogkd
 - Firefox Add-ons: https://addons.mozilla.org/en-US/firefox/addon/kampus-auto-login/
 
-### Build it yourself
+### Or build it locally
 
 Build browser-specific packages first:
 
