@@ -14,6 +14,72 @@
     const includesKampusHost = contentCommon.includesKampusHost || (() => false);
     const referrerIncludesKampusHost = contentCommon.referrerIncludesKampusHost || (() => false);
     const isFirefoxLikeBrowser = /Firefox\//.test(navigator.userAgent || '');
+    const svgNamespace = 'http://www.w3.org/2000/svg';
+
+    function createSvgElement(tagName, attributes) {
+        const element = document.createElementNS(svgNamespace, tagName);
+        Object.entries(attributes || {}).forEach(([name, value]) => {
+            element.setAttribute(name, value);
+        });
+        return element;
+    }
+
+    function createAnimatedCircle({ strokeWidth, opacityValues, begin }) {
+        const circle = createSvgElement('circle', {
+            cx: '70',
+            cy: '70',
+            fill: 'none',
+            stroke: 'var(--color-accent)',
+            'stroke-width': strokeWidth
+        });
+        circle.appendChild(createSvgElement('animate', {
+            attributeName: 'r',
+            values: '0;48',
+            dur: '1.8s',
+            begin,
+            repeatCount: 'indefinite',
+            calcMode: 'spline',
+            keySplines: '0.22 1 0.36 1'
+        }));
+        circle.appendChild(createSvgElement('animate', {
+            attributeName: 'opacity',
+            values: opacityValues,
+            dur: '1.8s',
+            begin,
+            repeatCount: 'indefinite',
+            calcMode: 'spline',
+            keySplines: '0.22 1 0.36 1'
+        }));
+        return circle;
+    }
+
+    function createCursorAnimationSvg() {
+        const svg = createSvgElement('svg', {
+            width: '104',
+            height: '104',
+            viewBox: '0 0 140 140',
+            xmlns: svgNamespace
+        });
+        svg.appendChild(createAnimatedCircle({
+            strokeWidth: '1.8',
+            opacityValues: '0.7;0',
+            begin: '0.85s'
+        }));
+        svg.appendChild(createAnimatedCircle({
+            strokeWidth: '1.2',
+            opacityValues: '0.42;0',
+            begin: '1.08s'
+        }));
+        svg.appendChild(createSvgElement('path', {
+            d: 'M70 70L70 112L80 102L86 118L92 115.5L86 100L99 100L70 70Z',
+            fill: 'var(--color-card)',
+            stroke: 'var(--color-text-primary)',
+            'stroke-width': '2',
+            'stroke-linejoin': 'round',
+            'stroke-linecap': 'round'
+        }));
+        return svg;
+    }
 
     function showContinueHint(titleMessage, subtitleMessage) {
         try {
@@ -51,19 +117,7 @@
             const cursorWrap = document.createElement('div');
             cursorWrap.className = 'cursor-wrap';
             cursorWrap.setAttribute('aria-hidden', 'true');
-            cursorWrap.innerHTML = [
-                '<svg width="104" height="104" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">',
-                '  <circle cx="70" cy="70" fill="none" stroke="var(--color-accent)" stroke-width="1.8">',
-                '    <animate attributeName="r" values="0;48" dur="1.8s" begin="0.85s" repeatCount="indefinite" calcMode="spline" keySplines="0.22 1 0.36 1"/>',
-                '    <animate attributeName="opacity" values="0.7;0" dur="1.8s" begin="0.85s" repeatCount="indefinite" calcMode="spline" keySplines="0.22 1 0.36 1"/>',
-                '  </circle>',
-                '  <circle cx="70" cy="70" fill="none" stroke="var(--color-accent)" stroke-width="1.2">',
-                '    <animate attributeName="r" values="0;48" dur="1.8s" begin="1.08s" repeatCount="indefinite" calcMode="spline" keySplines="0.22 1 0.36 1"/>',
-                '    <animate attributeName="opacity" values="0.42;0" dur="1.8s" begin="1.08s" repeatCount="indefinite" calcMode="spline" keySplines="0.22 1 0.36 1"/>',
-                '  </circle>',
-                '  <path d="M70 70L70 112L80 102L86 118L92 115.5L86 100L99 100L70 70Z" fill="var(--color-card)" stroke="var(--color-text-primary)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>',
-                '</svg>'
-            ].join('');
+            cursorWrap.appendChild(createCursorAnimationSvg());
             const title = document.createElement('p');
             title.className = 'title';
             const titleText = document.createElement('span');
