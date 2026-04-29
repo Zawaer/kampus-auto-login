@@ -130,7 +130,7 @@ async function loadSchoolNames() {
 }
 
 // Initialize school selector
-async function initSchoolSelector(currentLang) {
+async function initSchoolSelector(getCurrentLang) {
     const searchInput = document.getElementById('schoolSearch');
     const dropdown = document.getElementById('schoolDropdown');
     const schoolNameHidden = document.getElementById('schoolName');
@@ -164,8 +164,12 @@ async function initSchoolSelector(currentLang) {
         errorMessage.textContent = '';
     }
 
+    function translate(key) {
+        return t(getCurrentLang(), key);
+    }
+
     // Show loading state
-    showDropdownMessage('school-loading', t(currentLang, 'setupSchoolLoading'));
+    showDropdownMessage('school-loading', translate('setupSchoolLoading'));
     dropdown.classList.add('active');
 
     allSchoolNames = await loadSchoolNames();
@@ -176,7 +180,7 @@ async function initSchoolSelector(currentLang) {
 
     if (allSchoolNames.length === 0) {
         dropdown.classList.remove('active');
-        showErrorMessage(t(currentLang, 'setupSchoolLoadError'));
+        showErrorMessage(translate('setupSchoolLoadError'));
         return;
     }
 
@@ -190,7 +194,7 @@ async function initSchoolSelector(currentLang) {
         );
 
         if (filtered.length === 0) {
-            showDropdownMessage('school-error', t(currentLang, 'setupSchoolNotFound'));
+            showDropdownMessage('school-error', translate('setupSchoolNotFound'));
             return;
         }
 
@@ -298,7 +302,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     // Initialize school selector
-    await initSchoolSelector(currentLang);
+    await initSchoolSelector(() => currentLang);
 
     async function switchLanguage(lang) {
         currentLang = lang;
