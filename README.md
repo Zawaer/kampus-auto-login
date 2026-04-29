@@ -16,10 +16,12 @@ https://github.com/user-attachments/assets/df75f88c-db5c-43bb-a896-f4618fda40c9
 
 ## Installation
 
-Install directly from browser stores:
+### Install directly from browser stores
 
 - Chrome Web Store: https://chromewebstore.google.com/detail/kampus-auto-login/jnlidjmljocgjaapbnmfjbkcmghmogkd
 - Firefox Add-ons: https://addons.mozilla.org/en-US/firefox/addon/kampus-auto-login/
+
+### Build it yourself
 
 Build browser-specific packages first:
 
@@ -32,7 +34,7 @@ This creates:
 - `dist/chrome/`
 - `dist/firefox/`
 
-Create upload zips for both browsers:
+Create uploadable zips for both browsers:
 
 ```bash
 node scripts/package-variants.mjs
@@ -53,14 +55,12 @@ This creates:
 
 ### Firefox / Zen
 
-Temporary install (for local testing):
-
 1. Open `about:debugging#/runtime/this-firefox`.
 2. Click **Load Temporary Add-on...**.
 3. Select `dist/firefox/manifest.json`.
-4. Note: temporary add-ons are removed when the browser restarts.
+4. Temporary add-ons are removed when the browser restarts.
 
-## Quick tutorial (first-time setup)
+## First-time setup
 
 1. Click the extension icon and open **Change settings**.
 2. In **Koulun nimi / School name**, start typing and select your school from the dropdown.
@@ -68,6 +68,13 @@ Temporary install (for local testing):
 4. Click **Tallenna / Save**.
 5. Allow the requested permission for that exact login domain when prompted.
 6. Return to Kampus and sign in; after that, the extension can automate the flow when enabled.
+
+## Browser variants
+
+The user experience is slightly different between browsers on the municipality login page:
+
+- Firefox usually continues immediately once the browser has autofilled your credentials.
+- Chrome often needs one extra click or key press on the login page before the autofilled credentials become visible and the extension can continue.
 
 ## Permissions and privacy
 
