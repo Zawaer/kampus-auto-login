@@ -9,6 +9,7 @@
     const isVisible = contentCommon.isVisible || (() => false);
     const showLoadingOverlay = contentCommon.showLoadingOverlay || (() => false);
     const removeElementWithFade = contentCommon.removeElementWithFade || (() => false);
+    const showSchoolRequiredOverlay = contentCommon.showSchoolRequiredOverlay || (() => false);
 
     console.log('Kampus Auto Login: Running on kirjautuminen.sanomapro.fi');
     
@@ -22,6 +23,16 @@
         } catch (error) {
             console.error('Kampus Auto Login: Error checking settings:', error);
             return true;
+        }
+    }
+
+    async function getConfiguredSchoolName() {
+        try {
+            const { schoolName } = await extensionApi.storage.sync.get({ schoolName: '' });
+            return (schoolName || '').trim();
+        } catch (error) {
+            console.error('Kampus Auto Login: Error checking configured school:', error);
+            return '';
         }
     }
 
@@ -204,6 +215,23 @@
             return;
         }
 
+        const uiLanguage = await getLanguage();
+        const schoolName = await getConfiguredSchoolName();
+        if (!schoolName) {
+            console.log('Kampus Auto Login: No school configured, not starting auto-login flow');
+            try {
+                await extensionApi.storage.local.set({ kampusFlowStartedAt: 0 });
+            } catch (e) {}
+            removeElementWithFade('kampus-autologin-overlay');
+            showSchoolRequiredOverlay(
+                extensionApi,
+                t(uiLanguage, 'mpassSchoolRequiredTitle'),
+                t(uiLanguage, 'mpassSchoolRequiredDescription'),
+                t(uiLanguage, 'mpassSchoolRequiredAction')
+            );
+            return;
+        }
+
         // Mark a short-lived Kampus flow so mpass-proxy can allow automation
         try {
             await extensionApi.storage.local.set({ kampusFlowStartedAt: Date.now() });
@@ -212,7 +240,6 @@
         }
         
         console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
-        const uiLanguage = await getLanguage();
         showLoadingOverlay(t(uiLanguage, 'commonLoggingInLabel'));
         
         if (findAndClickMPASSButton()) {
