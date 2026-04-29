@@ -4,7 +4,7 @@ Kampus Auto Login speeds up the Sanoma Pro Kampus sign-in flow by automatically 
 
 ## What it does
 
-When enabled, the extension automates this flow:
+When enabled, the extension automates the login process for Sanoma Pro Kampus:
 
 1. `kampus.sanomapro.fi` → `kirjautuminen.sanomapro.fi`
 2. Clicks the MPASSid login button
