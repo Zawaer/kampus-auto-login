@@ -78,6 +78,40 @@
         }
         .btn-save:hover { background: #552a7d; }
         .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+        .settings-extra {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 22px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        .btn-report {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            padding: 8px 12px;
+            border: 1px solid #d8cbe8;
+            border-radius: 6px;
+            background: #f3edf9;
+            color: #5f3b86;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.4;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-report:hover { background: #e9def5; border-color: #cbb9df; }
+        .btn-report:focus { outline: none; box-shadow: 0 0 0 2px rgba(100, 54, 149, 0.2); }
+        .version-label {
+            color: #6c757d;
+            font-size: 12px;
+            line-height: 1.4;
+            text-align: left;
+        }
         .form-hint { font-size: 12px; color: #6c757d; margin-top: 6px; }
         .success-msg { display: none; }
     </style>
@@ -110,6 +144,16 @@
             <button type="submit" class="btn-save" id="saveBtn" data-i18n="setupSaveBtn">Tallenna</button>
             <p class="school-error-message form-error-message" id="successMsg"></p>
         </form>
+        <div class="settings-extra">
+            <p class="version-label" id="versionDisplay">Kampus Auto Login v—</p>
+            <a
+                class="btn-report"
+                href="https://forms.gle/bDJZyb3WbQ5Twrsr9"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-i18n="popupReportBug"
+            >Ilmoita ongelmasta</a>
+        </div>
     </div>
     <script src="i18n.js"></script>
     <script src="setup.js"></script>

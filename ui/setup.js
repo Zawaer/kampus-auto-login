@@ -79,22 +79,17 @@ function getLockedSchoolDomain(schoolName) {
 }
 
 function applySchoolDomainRules(schoolName, domainInput) {
-    const formGroup = domainInput.closest('.form-group');
     const lockedDomain = getLockedSchoolDomain(schoolName);
 
     if (lockedDomain) {
         domainInput.value = lockedDomain;
-        domainInput.required = false;
-        if (formGroup) {
-            formGroup.hidden = true;
-        }
+        domainInput.disabled = true;
+        domainInput.required = true;
         return;
     }
 
+    domainInput.disabled = false;
     domainInput.required = true;
-    if (formGroup) {
-        formGroup.hidden = false;
-    }
 }
 
 async function ensureAdfsPermission(domain) {
@@ -270,6 +265,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const saveBtn = document.getElementById('saveBtn');
     const successMsg = document.getElementById('successMsg');
     const langSelect = document.getElementById('langSelect');
+    const versionDisplay = document.getElementById('versionDisplay');
 
     function showFormError(message) {
         successMsg.textContent = message;
@@ -295,6 +291,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     applySchoolDomainRules(storageResult.schoolName, domainInput);
 
     applyTranslations(currentLang);
+
+    if (versionDisplay) {
+        const version = extensionApi.runtime.getManifest()?.version || '';
+        versionDisplay.textContent = version ? `Kampus Auto Login v${version}` : 'Kampus Auto Login';
+    }
 
     // Initialize school selector
     await initSchoolSelector(currentLang);

@@ -8,49 +8,44 @@
 </head>
 <body class="popup-page">
     <div class="container">
-        <div class="header">
+        <header class="popup-header">
             <h1 data-i18n="popupTitle">Kampus Auto Login</h1>
-        </div>
-        
-        <div class="content">
-            <div class="toggle-section">
-                <label class="toggle-label">
-                    <span class="toggle-text" data-i18n="popupEnableToggle">Enable Auto Login</span>
-                    <div class="toggle-switch">
+        </header>
+        <main class="content">
+            <section class="toggles-section">
+                <label class="toggle-row">
+                    <span class="toggle-info">
+                        <span class="toggle-name" data-i18n="popupEnableToggle">Auto Login</span>
+                        <span class="toggle-desc" data-i18n="popupAutoLoginDescription">Automate redirects and button clicks</span>
+                    </span>
+                    <span class="toggle-switch">
                         <input type="checkbox" id="autoLoginToggle">
                         <span class="slider"></span>
-                    </div>
+                    </span>
                 </label>
-            </div>
 
-            <div class="toggle-section">
-                <label class="toggle-label">
-                    <span class="toggle-text" data-i18n="popupAutofillToggle">Use autofilled credentials automatically</span>
-                    <div class="toggle-switch">
+                <label class="toggle-row">
+                    <span class="toggle-info">
+                        <span class="toggle-name" data-i18n="popupAutofillToggle">Use autofilled credentials</span>
+                        <span class="toggle-desc" data-i18n="popupAutofillDescription">Continue login when browser fills saved password</span>
+                    </span>
+                    <span class="toggle-switch">
                         <input type="checkbox" id="autoFillToggle">
                         <span class="slider"></span>
-                    </div>
+                    </span>
                 </label>
-                <p class="toggle-description" data-i18n="popupAutofillDescription">If your browser fills in the saved username and password, the extension continues the login automatically.</p>
-            </div>
-            
-            <div class="municipality-section">
-                <p class="municipality-label"><span data-i18n="popupSchoolLabel">School:</span> <span id="schoolDisplay">—</span></p>
-                <p class="municipality-label"><span data-i18n="popupDomainLabel">Domain:</span> <span id="domainDisplay">—</span></p>
-            </div>
+            </section>
 
-            <div class="support-section">
-                <a
-                    class="btn btn-support support-link"
-                    href="https://forms.gle/bDJZyb3WbQ5Twrsr9"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    data-i18n="popupReportBug"
-                >Report a bug</a>
-            </div>
-
-            <button type="button" id="changeMunicipality" class="btn btn-settings" data-i18n="popupChangeSettings">Change settings</button>
-        </div>
+            <footer class="footer">
+                <div class="school-info">
+                    <span class="school-name" id="schoolDisplay">—</span>
+                    <span class="school-domain" id="domainDisplay">—</span>
+                </div>
+                <div class="footer-actions">
+                    <button type="button" id="changeMunicipality" class="btn-settings" data-i18n="popupChangeSettings">Settings</button>
+                </div>
+            </footer>
+        </main>
     </div>
     
     <script src="i18n.js"></script>
