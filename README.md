@@ -14,7 +14,7 @@ When enabled, the extension automates the login process for Sanoma Pro Kampus:
 4. Handles your school login page automatically
 5. Redirects from the `sanomapro.fi` landing page back to `https://kampus.sanomapro.fi/`
 
-https://github.com/user-attachments/assets/df75f88c-db5c-43bb-a896-f4618fda40c9
+https://github.com/user-attachments/assets/fb2a64f0-5d0d-466a-a311-19aea632caf8
 
 ## Installation
 
