@@ -9,6 +9,7 @@
     const createShadowHost = contentCommon.createShadowHost || (() => null);
     const appendShadowStyles = contentCommon.appendShadowStyles || (() => null);
     const isVisible = contentCommon.isVisible || (() => false);
+    const showLoadingOverlay = contentCommon.showLoadingOverlay || (() => false);
     const removeElementWithFade = contentCommon.removeElementWithFade || (() => false);
     const includesKampusHost = contentCommon.includesKampusHost || (() => false);
     const referrerIncludesKampusHost = contentCommon.referrerIncludesKampusHost || (() => false);
@@ -232,7 +233,9 @@
         }
 
         const uiLanguage = await getLanguage();
-        if (!isFirefoxLikeBrowser) {
+        if (isFirefoxLikeBrowser) {
+            showLoadingOverlay(t(uiLanguage, 'commonLoggingInLabel'));
+        } else {
             showContinueHint(
                 t(uiLanguage, 'adfsContinueTitle'),
                 t(uiLanguage, 'adfsContinueDescription')
@@ -296,6 +299,7 @@
 
             if (maxAttempts && attempts >= maxAttempts) {
                 clearInterval(interval);
+                removeElementWithFade('kampus-autologin-overlay');
                 const state = getCredentialState();
                 console.log('Kampus Auto Login: ADFS fields never became real input values in time; not clicking Sign in', {
                     userLength: state.userLength,
