@@ -4,6 +4,10 @@
     padding: 0;
 }
 
+html {
+    background: #f8f9fa;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial,
         sans-serif;
@@ -167,6 +171,30 @@ input:checked + .slider:before {
 .btn-support:hover {
     background: #e9def5;
     border-color: #cbb9df;
+}
+
+@-moz-document url-prefix() {
+    html:has(body.popup-page) {
+        background: transparent;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    body.popup-page {
+        background: transparent;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .popup-page .container {
+        border-radius: 10px;
+    }
+
+    .popup-page .toggle-section,
+    .popup-page .municipality-section,
+    .popup-page .btn {
+        border-radius: 8px;
+    }
 }
 
 /* Focus styles for accessibility */
