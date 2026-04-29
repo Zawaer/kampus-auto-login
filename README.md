@@ -12,9 +12,7 @@ When enabled, the extension automates this flow:
 4. Handles your school login page automatically
 5. Redirects from the `sanomapro.fi` landing page back to `https://kampus.sanomapro.fi/`
 
-Demo video (not the latest version, but it works identically):
-
-https://github.com/user-attachments/assets/1f1bc9f3-0441-4a0a-99f4-9d9563dbec1a
+https://github.com/user-attachments/assets/df75f88c-db5c-43bb-a896-f4618fda40c9
 
 ## Installation
 
