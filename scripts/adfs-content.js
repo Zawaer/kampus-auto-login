@@ -27,26 +27,65 @@
 
             const { host, shadowRoot } = created;
             appendShadowStyles(shadowRoot, [
-                ':host { all: initial; position: fixed; inset: 0; z-index: 2147483646; pointer-events: none; }',
-                '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; }',
-                '.card { display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(360px, calc(100vw - 32px)); padding: 28px 32px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; text-align: center; }',
-                '.title { font-size: 18px; font-weight: 600; color: #643695; line-height: 1.3; }',
-                '.subtitle { font-size: 14px; line-height: 1.45; color: #495057; }'
+                ':host { all: initial; position: fixed; inset: 0; z-index: 2147483646; pointer-events: none; --color-text-primary: #1f2937; --color-muted: #6c757d; --color-border: #e9ecef; --color-card: #f7f7fb; --color-accent: #643695; }',
+                '@keyframes clickCursor { 0%, 30% { transform: scale(1); } 45% { transform: scale(0.88); } 65%, 100% { transform: scale(1); } }',
+                '@keyframes fadeInScale { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }',
+                '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; }',
+                '.card { display: flex; flex-direction: column; align-items: center; gap: 14px; width: min(280px, calc(100vw - 32px)); padding: 22px 32px 28px; background: var(--color-card); color: var(--color-text-primary); border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; text-align: center; animation: fadeInScale 0.35s cubic-bezier(0.22,1,0.36,1) both; }',
+                '.cursor-wrap { width: 104px; height: 104px; animation: clickCursor 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite; }',
+                '.cursor-wrap svg { display: block; width: 100%; height: 100%; }',
+                '.title { margin: 0; max-width: 270px; font-size: 15px; font-weight: 500; color: var(--color-text-primary); line-height: 1.45; letter-spacing: 0.2px; }',
+                '.info-wrap { position: relative; display: inline-flex; align-items: center; margin-left: 6px; pointer-events: auto; vertical-align: 1px; }',
+                '.info-button { width: 17px; height: 17px; border: 1px solid #c8cdd3; border-radius: 999px; background: #fff; color: #6c757d; font: 700 11px/1 "Segoe UI", Roboto, Arial, sans-serif; display: inline-flex; align-items: center; justify-content: center; cursor: help; padding: 0; }',
+                '.info-button:focus-visible { outline: 2px solid rgba(100,54,149,0.28); outline-offset: 3px; }',
+                '.tooltip { position: absolute; bottom: calc(100% + 10px); left: 50%; width: min(280px, calc(100vw - 72px)); padding: 10px 12px; border-radius: 8px; background: #1f2937; color: #fff; font-size: 12px; font-weight: 400; line-height: 1.5; text-align: center; box-shadow: 0 10px 24px rgba(0,0,0,0.22); opacity: 0; transform: translate(-50%, 4px); transition: opacity 0.16s ease, transform 0.16s ease; pointer-events: none; visibility: hidden; letter-spacing: 0; }',
+                '.tooltip::after { content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #1f2937; }',
+                '.info-wrap:hover .tooltip, .info-wrap:focus-within .tooltip { opacity: 1; transform: translate(-50%, 0); visibility: visible; }',
+                '@media (prefers-reduced-motion: reduce) { .cursor-wrap { animation: none; } }'
             ]);
 
             const overlay = document.createElement('div');
             overlay.className = 'overlay';
             const card = document.createElement('div');
             card.className = 'card';
-            const title = document.createElement('div');
+            const cursorWrap = document.createElement('div');
+            cursorWrap.className = 'cursor-wrap';
+            cursorWrap.setAttribute('aria-hidden', 'true');
+            cursorWrap.innerHTML = [
+                '<svg width="104" height="104" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">',
+                '  <circle cx="70" cy="70" fill="none" stroke="var(--color-accent)" stroke-width="1.8">',
+                '    <animate attributeName="r" values="0;48" dur="1.8s" begin="0.85s" repeatCount="indefinite" calcMode="spline" keySplines="0.22 1 0.36 1"/>',
+                '    <animate attributeName="opacity" values="0.7;0" dur="1.8s" begin="0.85s" repeatCount="indefinite" calcMode="spline" keySplines="0.22 1 0.36 1"/>',
+                '  </circle>',
+                '  <circle cx="70" cy="70" fill="none" stroke="var(--color-accent)" stroke-width="1.2">',
+                '    <animate attributeName="r" values="0;48" dur="1.8s" begin="1.08s" repeatCount="indefinite" calcMode="spline" keySplines="0.22 1 0.36 1"/>',
+                '    <animate attributeName="opacity" values="0.42;0" dur="1.8s" begin="1.08s" repeatCount="indefinite" calcMode="spline" keySplines="0.22 1 0.36 1"/>',
+                '  </circle>',
+                '  <path d="M70 70L70 112L80 102L86 118L92 115.5L86 100L99 100L70 70Z" fill="var(--color-card)" stroke="var(--color-text-primary)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>',
+                '</svg>'
+            ].join('');
+            const title = document.createElement('p');
             title.className = 'title';
-            title.textContent = titleMessage;
-            const subtitle = document.createElement('div');
-            subtitle.className = 'subtitle';
-            subtitle.textContent = subtitleMessage;
+            const titleText = document.createElement('span');
+            titleText.textContent = titleMessage;
+            const infoWrap = document.createElement('span');
+            infoWrap.className = 'info-wrap';
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.setAttribute('role', 'tooltip');
+            tooltip.textContent = subtitleMessage;
+            const infoButton = document.createElement('button');
+            infoButton.type = 'button';
+            infoButton.className = 'info-button';
+            infoButton.setAttribute('aria-label', subtitleMessage);
+            infoButton.textContent = 'i';
 
+            infoWrap.appendChild(tooltip);
+            infoWrap.appendChild(infoButton);
+            title.appendChild(titleText);
+            title.appendChild(infoWrap);
+            card.appendChild(cursorWrap);
             card.appendChild(title);
-            card.appendChild(subtitle);
             overlay.appendChild(card);
             shadowRoot.appendChild(overlay);
             document.documentElement.appendChild(host);

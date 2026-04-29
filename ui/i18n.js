@@ -40,8 +40,8 @@ const translations = {
         mpassSchoolRequiredAction: 'Open settings',
 
         // ADFS page
-        adfsContinueTitle: 'Click anywhere or press any key to continue',
-        adfsContinueDescription: 'Chrome needs page focus so the login process can continue.',
+        adfsContinueTitle: 'Click anywhere or press any key to continue...',
+        adfsContinueDescription: 'Chrome protects autofilled passwords by not exposing them to the page until the login form is interacted with. Clicking anywhere or pressing any key lets the browser finish applying the saved credentials, so Kampus Auto Login can continue logging in.',
     },
     fi: {
         // Setup page
@@ -82,8 +82,8 @@ const translations = {
         mpassSchoolRequiredAction: 'Avaa asetukset',
 
         // ADFS page
-        adfsContinueTitle: 'Jatka klikkaamalla mistä tahansa tai painamalla mitä tahansa näppäintä',
-        adfsContinueDescription: 'Chrome tarvitsee sivun fokuksen jotta kirjautuminen voi jatkua.',
+        adfsContinueTitle: 'Jatka klikkaamalla mistä tahansa tai painamalla mitä tahansa näppäintä...',
+        adfsContinueDescription: 'Chrome suojaa automaattisesti täytettyjä salasanoja näyttämättä niitä sivulla, ennen kuin käyttäjä on vuorovaikutuksessa kirjautumislomakkeen kanssa. Klikkaamalla jostain tai painamalla jotain näppäintä selain voi täyttää automaattisesti täytetyt salasanat, jolloin Kampus Auto Login voi jatkaa kirjautumista.',
     },
 };
 
