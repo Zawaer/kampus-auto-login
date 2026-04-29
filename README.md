@@ -75,7 +75,7 @@ This creates:
 
 The user experience is slightly different between browsers on the municipality login page:
 
-- Firefox usually continues immediately once the browser has autofilled your credentials.
+- Firefox usually continues immediately once the browser has autofilled your credentials. This requires no user intervention.
 - Chrome often needs one extra click or key press on the login page before the autofilled credentials become visible and the extension can continue.
 
 ## Permissions and privacy
