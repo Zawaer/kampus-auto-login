@@ -3,9 +3,9 @@
   "name": "Kampus Auto Login",
   "version": "1.4",
   "description": "Automate the repetitive login process for Sanoma Pro Kampus.",
+  "minimum_chrome_version": "120",
   "permissions": [
     "storage",
-    "tabs",
     "scripting"
   ],
   "host_permissions": [
@@ -47,6 +47,7 @@
       ],
       "js": [
         "ui/i18n.js",
+        "scripts/content-common.js",
         "scripts/kirjautuminen-content.js"
       ],
       "run_at": "document_end"
@@ -57,6 +58,7 @@
       ],
       "js": [
         "ui/i18n.js",
+        "scripts/content-common.js",
         "scripts/mpass-content.js"
       ],
       "run_at": "document_end"
@@ -68,6 +70,7 @@
       ],
       "js": [
         "ui/i18n.js",
+        "scripts/content-common.js",
         "scripts/sanomapro-content.js"
       ],
       "run_at": "document_end"

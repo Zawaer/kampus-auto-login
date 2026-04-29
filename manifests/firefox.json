@@ -13,6 +13,7 @@
       ],
       "js": [
         "ui/i18n.js",
+        "scripts/content-common.js",
         "scripts/kirjautuminen-content.js"
       ],
       "run_at": "document_end"
@@ -23,6 +24,7 @@
       ],
       "js": [
         "ui/i18n.js",
+        "scripts/content-common.js",
         "scripts/mpass-content.js"
       ],
       "run_at": "document_end"
@@ -34,6 +36,7 @@
       ],
       "js": [
         "ui/i18n.js",
+        "scripts/content-common.js",
         "scripts/sanomapro-content.js"
       ],
       "run_at": "document_end"
@@ -44,6 +47,7 @@
       ],
       "js": [
         "ui/i18n.js",
+        "scripts/content-common.js",
         "scripts/adfs-content.js"
       ],
       "run_at": "document_end"

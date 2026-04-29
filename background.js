@@ -7,41 +7,12 @@ function getAdfsPattern(domain) {
 }
 
 async function openSetupPage() {
-    if (extensionApi.runtime?.openOptionsPage) {
-        await extensionApi.runtime.openOptionsPage();
-        return { opened: true, tabId: null, method: 'options' };
+    if (!extensionApi.runtime?.openOptionsPage) {
+        throw new Error('Options page API is not available');
     }
 
-    const setupUrl = extensionApi.runtime.getURL('ui/setup.html');
-    return await new Promise((resolve, reject) => {
-        extensionApi.tabs.create({ url: setupUrl }, (tab) => {
-            if (extensionApi.runtime.lastError) {
-                reject(extensionApi.runtime.lastError);
-                return;
-            }
-            resolve({ opened: true, tabId: tab?.id || null, method: 'tab' });
-        });
-    });
-}
-
-async function closeSetupPage() {
-    const setupUrl = extensionApi.runtime.getURL('ui/setup.html');
-    return await new Promise((resolve, reject) => {
-        extensionApi.tabs.query({ url: setupUrl }, (tabs) => {
-            if (extensionApi.runtime.lastError) {
-                reject(extensionApi.runtime.lastError);
-                return;
-            }
-
-            tabs.forEach((tab) => {
-                if (tab.id != null) {
-                    extensionApi.tabs.remove(tab.id);
-                }
-            });
-
-            resolve({ closed: tabs.length });
-        });
-    });
+    await extensionApi.runtime.openOptionsPage();
+    return { opened: true, tabId: null, method: 'options' };
 }
 
 function sendAsyncResponse(sendResponse, action) {
@@ -107,7 +78,7 @@ async function injectAdfsContentScript(tabId, tabUrl) {
     try {
         await extensionApi.scripting.executeScript({
             target: { tabId },
-            files: ['ui/i18n.js', 'scripts/adfs-content.js']
+            files: ['ui/i18n.js', 'scripts/content-common.js', 'scripts/adfs-content.js']
         });
     } catch (e) {
         console.error('Kampus Auto Login: Failed to inject ADFS script', e);
@@ -128,10 +99,6 @@ extensionApi.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 
-    if (request.action === 'closeSetupTab') {
-        sendAsyncResponse(sendResponse, closeSetupPage);
-        return true;
-    }
 });
 
 if (extensionApi.tabs?.onUpdated) {

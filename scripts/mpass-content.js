@@ -5,86 +5,30 @@
     'use strict';
 
     const extensionApi = globalThis.browser || globalThis.chrome;
-    
+    const contentCommon = globalThis.KampusContentCommon || {};
+    const showLoadingOverlay = contentCommon.showLoadingOverlay || (() => false);
+    const removeElementWithFade = contentCommon.removeElementWithFade || (() => false);
+    const createShadowHost = contentCommon.createShadowHost || (() => null);
+    const appendShadowStyles = contentCommon.appendShadowStyles || (() => null);
+    const includesKampusHost = contentCommon.includesKampusHost || (() => false);
+    const referrerIncludesKampusHost = contentCommon.referrerIncludesKampusHost || (() => false);
+    const hasRecentKampusFlowFlag = contentCommon.hasRecentKampusFlowFlag || (async () => false);
+
     console.log('Kampus Auto Login: Running on mpass-proxy.csc.fi');
 
-    // Show a full-screen "Logging in..." overlay with spinner (Shadow DOM to avoid page CSS)
-    function showLoginOverlay(message) {
-        try {
-            if (document.getElementById('kampus-autologin-overlay')) return;
-
-            const overlay = document.createElement('div');
-            overlay.id = 'kampus-autologin-overlay';
-            overlay.style.position = 'fixed';
-            overlay.style.inset = '0';
-            overlay.style.zIndex = '2147483646';
-
-            const shadowRoot = overlay.attachShadow({ mode: 'open' });
-            const style = document.createElement('style');
-            style.textContent = [
-                ':host { all: initial; position: fixed; inset: 0; z-index: 2147483646; }',
-                '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }',
-                '.card { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 28px 40px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; }',
-                '.spinner { width: 28px; height: 28px; border: 3px solid rgba(0,0,0,0.12); border-top-color: #643695; border-radius: 50%; animation: kampus-spin 0.7s linear infinite; }',
-                '.label { font-size: 15px; font-weight: 500; letter-spacing: 0.3px; }',
-                '@keyframes kampus-spin { to { transform: rotate(360deg); } }'
-            ].join('\n');
-
-            const overlayWrap = document.createElement('div');
-            overlayWrap.className = 'overlay';
-            const card = document.createElement('div');
-            card.className = 'card';
-            const spinner = document.createElement('div');
-            spinner.className = 'spinner';
-            const label = document.createElement('div');
-            label.className = 'label';
-            label.textContent = message;
-
-            card.appendChild(spinner);
-            card.appendChild(label);
-            overlayWrap.appendChild(card);
-            shadowRoot.appendChild(style);
-            shadowRoot.appendChild(overlayWrap);
-
-            document.documentElement.appendChild(overlay);
-        } catch (e) {}
-    }
-    
-    function hideLoginOverlay() {
-        try {
-            const overlay = document.getElementById('kampus-autologin-overlay');
-            if (overlay) {
-                overlay.style.opacity = '0';
-                overlay.style.transition = 'opacity 0.2s ease';
-                setTimeout(() => { try { overlay.remove(); } catch (e) {} }, 250);
-            }
-        } catch (e) {}
-    }
-
     function hideSchoolRequiredOverlay() {
-        try {
-            const overlay = document.getElementById('kampus-autologin-school-required');
-            if (overlay) {
-                overlay.style.opacity = '0';
-                overlay.style.transition = 'opacity 0.2s ease';
-                setTimeout(() => { try { overlay.remove(); } catch (e) {} }, 250);
-            }
-        } catch (e) {}
+        removeElementWithFade('kampus-autologin-school-required');
     }
 
     function showSchoolRequiredOverlay(titleMessage, descriptionMessage, actionLabel) {
         try {
-            if (document.getElementById('kampus-autologin-school-required')) return;
+            const created = createShadowHost('kampus-autologin-school-required', { zIndex: 2147483647 });
+            if (!created) {
+                return;
+            }
 
-            const host = document.createElement('div');
-            host.id = 'kampus-autologin-school-required';
-            host.style.position = 'fixed';
-            host.style.inset = '0';
-            host.style.zIndex = '2147483647';
-
-            const shadowRoot = host.attachShadow({ mode: 'open' });
-            const style = document.createElement('style');
-            style.textContent = [
+            const { host, shadowRoot } = created;
+            appendShadowStyles(shadowRoot, [
                 ':host { all: initial; position: fixed; inset: 0; z-index: 2147483647; }',
                 '.overlay { width: 100vw; height: 100vh; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; }',
                 '.card { position: relative; width: min(420px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 12px; padding: 28px 32px; background: #f7f7fb; color: #1f2937; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); font-family: "Segoe UI", Roboto, Arial, sans-serif; box-sizing: border-box; text-align: center; }',
@@ -95,7 +39,7 @@
                 '.button { margin-top: 4px; width: 100%; padding: 11px 14px; border: 1px solid #643695; border-radius: 10px; background: linear-gradient(180deg, #7a49a9 0%, #643695 100%); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 6px 16px rgba(100, 54, 149, 0.18); }',
                 '.button:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(100, 54, 149, 0.22); }',
                 '.button:active { transform: translateY(0); }'
-            ].join('\n');
+            ]);
 
             const overlay = document.createElement('div');
             overlay.className = 'overlay';
@@ -134,7 +78,6 @@
             card.appendChild(description);
             card.appendChild(button);
             overlay.appendChild(card);
-            shadowRoot.appendChild(style);
             shadowRoot.appendChild(overlay);
             document.documentElement.appendChild(host);
         } catch (error) {
@@ -283,40 +226,20 @@
     }
 
     async function isKampusFlow() {
-        const allowedHosts = [
-            'sanomapro.fi',
-            'kampus.sanomapro.fi',
-            'kirjautuminen.sanomapro.fi',
-            'mpass-proxy.csc.fi'
-        ];
-
         try {
             const params = new URLSearchParams(window.location.search);
             for (const [key, value] of params.entries()) {
-                const lower = `${key}=${value}`.toLowerCase();
-                if (allowedHosts.some((host) => lower.includes(host))) {
+                if (includesKampusHost(`${key}=${value}`)) {
                     return true;
                 }
             }
         } catch (e) {}
 
-        try {
-            const referrer = document.referrer || '';
-            if (allowedHosts.some((host) => referrer.includes(host))) {
-                return true;
-            }
-        } catch (e) {}
+        if (referrerIncludesKampusHost()) {
+            return true;
+        }
 
-        // Fallback: accept if a recent Kampus flow flag was set on kirjautuminen
-        try {
-            const { kampusFlowStartedAt } = await extensionApi.storage.local.get({ kampusFlowStartedAt: 0 });
-            const maxAgeMs = 10 * 60 * 1000;
-            if (kampusFlowStartedAt && (Date.now() - kampusFlowStartedAt) < maxAgeMs) {
-                return true;
-            }
-        } catch (e) {}
-
-        return false;
+        return await hasRecentKampusFlowFlag(extensionApi);
     }
     
     async function waitAndTryClick() {
@@ -337,7 +260,7 @@
         const searchTerm = (schoolName || '').trim().toLowerCase();
         if (!searchTerm) {
             console.log('Kampus Auto Login: No school configured, waiting for user to choose one in settings');
-            hideLoginOverlay();
+            removeElementWithFade('kampus-autologin-overlay');
             showSchoolRequiredOverlay(
                 t(uiLanguage, 'mpassSchoolRequiredTitle'),
                 t(uiLanguage, 'mpassSchoolRequiredDescription'),
@@ -347,7 +270,7 @@
         }
 
         console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
-        showLoginOverlay(t(uiLanguage, 'commonLoggingInLabel'));
+        showLoadingOverlay(t(uiLanguage, 'commonLoggingInLabel'));
         
         // First: try immediate presence of last-selected school (only if it matches configured school)
         const lastNow = document.querySelector('#selectedList > div > div.listItem > div');
@@ -379,7 +302,7 @@
 
         if (result === 'no_school_configured') {
             console.log('Kampus Auto Login: Configure your school in extension options');
-            hideLoginOverlay();
+            removeElementWithFade('kampus-autologin-overlay');
             showSchoolRequiredOverlay(
                 t(uiLanguage, 'mpassSchoolRequiredTitle'),
                 t(uiLanguage, 'mpassSchoolRequiredDescription'),
@@ -433,7 +356,7 @@
                 } else if (Date.now() - start > maxWait) {
                     clearInterval(checkInterval);
                     console.log('Kampus Auto Login: School item not found after', maxWait, 'ms');
-                    hideLoginOverlay();
+                    removeElementWithFade('kampus-autologin-overlay');
                 }
             }, 400);
 
@@ -451,7 +374,7 @@
                     clearInterval(interval);
                     if (attempts >= maxAttempts) {
                         console.log('Kampus Auto Login: Could not handle mpass-proxy state after', maxAttempts, 'attempts');
-                        hideLoginOverlay();
+                        removeElementWithFade('kampus-autologin-overlay');
                     } else {
                         console.log('Kampus Auto Login: Successfully handled state on retry:', retryResult);
                     }
