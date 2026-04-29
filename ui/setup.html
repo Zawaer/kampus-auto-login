@@ -29,6 +29,12 @@
         }
         .form-group select { cursor: pointer; }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: #643695; box-shadow: 0 0 0 2px rgba(100, 54, 149, 0.2); }
+        .form-group input:disabled {
+            background: #f8f9fa;
+            color: #8a939d;
+            -webkit-text-fill-color: #8a939d;
+            cursor: not-allowed;
+        }
         .school-selector { position: relative; }
         .school-input { width: 100%; padding: 10px 12px; font-size: 15px; border: 1px solid #ddd; border-radius: 6px; background: #fff; }
         .school-input:focus { outline: none; border-color: #643695; box-shadow: 0 0 0 2px rgba(100, 54, 149, 0.2); }

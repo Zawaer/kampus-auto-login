@@ -24,11 +24,11 @@ const translations = {
         // Popup page
         popupTitle: 'Kampus Auto Login',
         popupEnableToggle: 'Auto Login',
-        popupAutoLoginDescription: 'Automate redirects and button clicks',
+        popupAutoLoginDescription: 'Enable automatic login',
         popupAutofillToggle: 'Use autofilled credentials',
-        popupAutofillDescription: 'Continue login when browser fills saved password',
+        popupAutofillDescription: 'Continue login when browser fills saved username and password',
         popupSchoolLabel: 'School:',
-        popupDomainLabel: 'Domain:',
+        popupDomainLabel: 'Login domain:',
         popupNotSet: 'Not set',
         popupChangeSettings: 'Settings',
         popupReportBug: 'Report a bug',
@@ -38,7 +38,7 @@ const translations = {
 
         // MPASS page
         mpassSchoolRequiredTitle: 'School selection required',
-        mpassSchoolRequiredDescription: 'Select a school in the extension settings so auto login can continue.',
+        mpassSchoolRequiredDescription: 'Select a school in the extension settings so the login process can continue.',
         mpassSchoolRequiredAction: 'Open settings',
 
         // ADFS page
@@ -68,9 +68,9 @@ const translations = {
         // Popup page
         popupTitle: 'Kampus Auto Login',
         popupEnableToggle: 'Automaattinen kirjautuminen',
-        popupAutoLoginDescription: 'Automatisoi uudelleenohjaukset ja painikkeet',
+        popupAutoLoginDescription: 'Ota automaattinen kirjautuminen käyttöön',
         popupAutofillToggle: 'Käytä selaimen täyttämiä tunnuksia',
-        popupAutofillDescription: 'Jatka kirjautumista, kun selain täyttää salasanan',
+        popupAutofillDescription: 'Jatka kirjautumista, kun selain täyttää tallennetun käyttäjänimen ja salasanan',
         popupSchoolLabel: 'Koulu:',
         popupDomainLabel: 'Kirjautumisosoite:',
         popupNotSet: 'Ei asetettu',
@@ -81,8 +81,8 @@ const translations = {
         commonLoggingInLabel: 'Kirjaudutaan...',
 
         // MPASS page
-        mpassSchoolRequiredTitle: 'Koulun valinta puuttuu',
-        mpassSchoolRequiredDescription: 'Valitse koulu laajennuksen asetuksista jotta automaattinen kirjautuminen voi jatkua.',
+        mpassSchoolRequiredTitle: 'Koulua ei ole valittu',
+        mpassSchoolRequiredDescription: 'Valitse koulu laajennuksen asetuksista jotta kirjautumisprosessi voi jatkua.',
         mpassSchoolRequiredAction: 'Avaa asetukset',
 
         // ADFS page
