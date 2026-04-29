@@ -13,68 +13,89 @@ body {
         sans-serif;
     font-size: 14px;
     line-height: 1.4;
-    color: #333;
+    color: #1f1a2e;
     background: #f8f9fa;
 }
 
 .container {
-    width: 320px;
-    background: #fff;
+    width: 300px;
     overflow: hidden;
+    background: #fff;
+    border: 1px solid #ede8f5;
 }
 
-.header {
-    background: #643695;
-    color: #fff;
-    padding: 12px 16px;
+.popup-header {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 12px 18px;
+    background: #643695;
+    color: #fff;
 }
 
-.header h1 {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0;
+.popup-header h1 {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: 0.01em;
 }
 
 .content {
-    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
 }
 
-.toggle-section {
-    margin-bottom: 16px;
-    padding: 12px;
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 6px;
+.toggles-section {
+    padding: 20px 22px 18px;
 }
 
-.toggle-label {
+.toggle-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 18px;
+    padding: 16px 0;
+    border-bottom: 1px solid #f1ebf8;
     cursor: pointer;
 }
 
-.toggle-text {
-    font-weight: 500;
-    font-size: 15px;
-    color: #495057;
+.toggle-row:first-child {
+    padding-top: 6px;
 }
 
-.toggle-description {
-    margin-top: 8px;
-    font-size: 12px;
+.toggle-row:last-child {
+    border-bottom: none;
+    padding-bottom: 6px;
+}
+
+.toggle-info {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.toggle-name {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #171225;
+}
+
+.toggle-desc {
+    font-size: 11.5px;
+    font-weight: 500;
     line-height: 1.45;
-    color: #6c757d;
+    color: #9d8bb9;
 }
 
 .toggle-switch {
     position: relative;
-    width: 50px;
-    height: 24px;
-    flex-shrink: 0;
+    width: 44px;
+    height: 26px;
+    flex: 0 0 auto;
 }
 
 .toggle-switch input {
@@ -90,117 +111,121 @@ body {
 .slider {
     position: absolute;
     inset: 0;
-    background: #ccc;
-    border-radius: 24px;
-    transition: 0.25s;
+    border-radius: 999px;
+    background: #e5ddf5;
+    transition: background 0.22s ease;
 }
 
-.slider:before {
+.slider::before {
     content: "";
     position: absolute;
+    top: 3px;
     left: 3px;
-    bottom: 3px;
-    width: 18px;
-    height: 18px;
-    background: #fff;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
-    transition: 0.25s;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(45, 33, 64, 0.16);
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-input:checked + .slider {
+.toggle-switch input:checked + .slider {
     background: #643695;
 }
 
-input:checked + .slider:before {
-    transform: translateX(26px);
+.toggle-switch input:checked + .slider::before {
+    transform: translateX(18px);
 }
 
-.municipality-section {
-    margin-top: 12px;
-    padding: 10px 12px;
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 6px;
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 22px;
+    border-top: 1px solid #f1ebf8;
+    background: #fff;
 }
 
-.municipality-label {
-    margin-bottom: 4px;
-    font-size: 13px;
-    color: #495057;
+.school-info {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 1px;
 }
 
-.btn {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    font-size: 15px;
+.school-name {
+    overflow: hidden;
+    color: #4a3268;
+    font-size: 12px;
     font-weight: 600;
-    line-height: 1.4;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease,
-        color 0.2s ease, box-shadow 0.2s ease;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.school-domain {
+    overflow: hidden;
+    color: #b1a1cc;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.footer-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
 }
 
 .btn-settings {
-    margin-top: 12px;
+    height: 32px;
+    border-radius: 8px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease,
+        color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-settings {
+    padding: 0 16px;
+    border: 1px solid transparent;
     background: #643695;
     color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
 }
 
 .btn-settings:hover {
     background: #552a7d;
 }
 
-.support-section {
-    margin-top: 12px;
-}
-
-.support-link {
-    text-decoration: none;
-    text-align: center;
-}
-
-.btn-support {
-    display: block;
-    border: 1px solid #d8cbe8;
-    background: #f3edf9;
-    color: #5f3b86;
-}
-
-.btn-support:hover {
-    background: #e9def5;
-    border-color: #cbb9df;
-}
-
 @-moz-document url-prefix() {
     html:has(body.popup-page) {
         background: transparent;
-        border-radius: 10px;
+        border-radius: 18px;
         overflow: hidden;
     }
 
     body.popup-page {
         background: transparent;
-        border-radius: 10px;
+        border-radius: 18px;
         overflow: hidden;
     }
 
     .popup-page .container {
-        border-radius: 10px;
-    }
-
-    .popup-page .toggle-section,
-    .popup-page .municipality-section,
-    .popup-page .btn {
-        border-radius: 8px;
+        border-radius: 18px;
     }
 }
 
-/* Focus styles for accessibility */
-.toggle-switch input:focus + .slider,
-.btn:focus,
-.support-link:focus {
-    box-shadow: 0 0 0 2px rgba(100, 54, 149, 0.25);
+.toggle-switch input:focus-visible + .slider,
+.btn-settings:focus-visible {
     outline: none;
+    box-shadow: 0 0 0 3px rgba(100, 54, 149, 0.22);
 }
