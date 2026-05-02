@@ -1,57 +1,10 @@
 {
-  "host_permissions": [
-    "https://kirjautuminen.sanomapro.fi/*",
-    "https://mpass-proxy.csc.fi/*",
-    "https://sanomapro.fi/*",
-    "https://www.sanomapro.fi/*",
-    "https://*/adfs/ls/*"
+  "permissions": [
+    "storage",
+    "scripting"
   ],
-  "content_scripts": [
-    {
-      "matches": [
-        "https://kirjautuminen.sanomapro.fi/*"
-      ],
-      "js": [
-        "ui/i18n.js",
-        "scripts/content-common.js",
-        "scripts/kirjautuminen-content.js"
-      ],
-      "run_at": "document_end"
-    },
-    {
-      "matches": [
-        "https://mpass-proxy.csc.fi/*"
-      ],
-      "js": [
-        "ui/i18n.js",
-        "scripts/content-common.js",
-        "scripts/mpass-content.js"
-      ],
-      "run_at": "document_end"
-    },
-    {
-      "matches": [
-        "https://sanomapro.fi/*",
-        "https://www.sanomapro.fi/*"
-      ],
-      "js": [
-        "ui/i18n.js",
-        "scripts/content-common.js",
-        "scripts/sanomapro-content.js"
-      ],
-      "run_at": "document_end"
-    },
-    {
-      "matches": [
-        "https://*/adfs/ls/*"
-      ],
-      "js": [
-        "ui/i18n.js",
-        "scripts/content-common.js",
-        "scripts/adfs-content.js"
-      ],
-      "run_at": "document_end"
-    }
+  "optional_host_permissions": [
+    "https://*/adfs/ls/*"
   ],
   "browser_specific_settings": {
     "gecko": {
