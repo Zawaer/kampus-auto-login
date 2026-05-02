@@ -67,6 +67,9 @@ async function buildTarget(target) {
     await cp(source, destination, { recursive: true });
   }
 
+  await rm(path.join(outDir, 'scripts', 'build-variants.mjs'), { force: true });
+  await rm(path.join(outDir, 'scripts', 'package-variants.mjs'), { force: true });
+
   const outputManifestPath = path.join(outDir, 'manifest.json');
   await writeFile(outputManifestPath, `${JSON.stringify(mergedManifest, null, 2)}\n`, 'utf8');
 
