@@ -66,7 +66,7 @@ This creates:
 
 1. Click the extension icon and open **Change settings**.
 2. In **Koulun nimi / School name**, start typing and select your school from the dropdown.
-3. In **Kirjautumisosoite / Login domain**, enter your municipality/school ADFS domain (example: `sts.edu.espoo.fi`).
+3. In **Kirjautumisosoite / Login domain**, enter your municipality/school ADFS domain (example: `sts.edu.espoo.fi`). Some preconfigured schools auto-fill and lock this field for you.
 4. Click **Tallenna / Save**.
 5. Allow the requested permission for that exact login domain when prompted.
 6. Return to Kampus and sign in; after that, the extension can automate the flow when enabled.

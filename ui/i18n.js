@@ -16,6 +16,9 @@ const translations = {
         setupSchoolLoading: 'Loading schools...',
         setupSchoolLoadError: 'Could not load schools. You can type your school name manually.',
         setupSchoolNotFound: 'No schools found.',
+        setupUnsupportedSchoolTitle: 'Your school is not yet supported.',
+        setupUnsupportedSchoolDescription: 'You can still save this school, but auto login will not run for it yet.',
+        setupRequestSchoolSupport: 'Request school support',
         setupLangLabel: 'Language:',
         setupLangFi: 'Finnish',
         setupLangEn: 'English',
@@ -29,6 +32,7 @@ const translations = {
         popupNotSet: 'Not set',
         popupChangeSettings: 'Settings',
         popupReportBug: 'Report a bug',
+        popupFeedback: 'Give feedback',
 
         // Shared labels
         commonLoggingInLabel: 'Logging in...',
@@ -57,6 +61,9 @@ const translations = {
         setupSchoolLoading: 'Ladataan kouluja...',
         setupSchoolLoadError: 'Kouluja ei voitu ladata. Voit kirjoittaa koulun nimen manuaalisesti.',
         setupSchoolNotFound: 'Kouluja ei löytynyt.',
+        setupUnsupportedSchoolTitle: 'Kouluasi ei vielä tueta.',
+        setupUnsupportedSchoolDescription: 'Voit silti tallentaa koulun, mutta automaattinen kirjautuminen ei vielä toimi sille.',
+        setupRequestSchoolSupport: 'Ehdota koulun lisäämistä',
         setupLangLabel: 'Kieli:',
         setupLangFi: 'Suomi',
         setupLangEn: 'Englanti',
@@ -70,6 +77,7 @@ const translations = {
         popupNotSet: 'Ei asetettu',
         popupChangeSettings: 'Asetukset',
         popupReportBug: 'Ilmoita ongelmasta',
+        popupFeedback: 'Anna palautetta',
 
         // Shared labels
         commonLoggingInLabel: 'Kirjaudutaan...',

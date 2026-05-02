@@ -67,6 +67,32 @@
         .school-error { padding: 12px; color: #dc3545; font-size: 13px; }
         .school-error-message { display: none; padding: 10px 12px; margin-top: 6px; background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; border-radius: 6px; font-size: 13px; line-height: 1.4; }
         .school-error-message.show { display: block; }
+        .school-support-message {
+            display: none;
+            padding: 10px 12px;
+            margin-top: 8px;
+            background: #fff9ed;
+            border: 1px solid #f2dfbd;
+            color: #66512c;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+        .school-support-message.show { display: block; }
+        .school-support-message strong {
+            display: block;
+            color: #4a3268;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .school-support-message a {
+            display: inline-flex;
+            margin-top: 6px;
+            color: #643695;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .school-support-message a:hover { text-decoration: underline; }
         .form-error-message { margin-top: 12px; }
         .btn-save {
             width: 100%;
@@ -93,26 +119,37 @@
             padding-top: 20px;
             border-top: 1px solid #e9ecef;
         }
+        .settings-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex: 0 0 auto;
+            flex-wrap: nowrap;
+        }
         .btn-report {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             flex: 0 0 auto;
-            padding: 8px 12px;
+            padding: 7px 10px;
             border: 1px solid #d8cbe8;
             border-radius: 6px;
             background: #f3edf9;
             color: #5f3b86;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 600;
             line-height: 1.4;
             text-align: center;
             text-decoration: none;
+            white-space: nowrap;
             transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
         .btn-report:hover { background: #e9def5; border-color: #cbb9df; }
         .btn-report:focus { outline: none; box-shadow: 0 0 0 2px rgba(100, 54, 149, 0.2); }
         .version-label {
+            flex: 1 1 auto;
+            min-width: 0;
             color: #6c757d;
             font-size: 12px;
             line-height: 1.4;
@@ -140,6 +177,7 @@
                     <div id="schoolDropdown" class="school-dropdown"></div>
                 </div>
                 <p id="schoolErrorMessage" class="school-error-message"></p>
+                <p id="unsupportedSchoolMessage" class="school-support-message"></p>
                 <input type="hidden" id="schoolName">
             </div>
             <div class="form-group">
@@ -152,16 +190,26 @@
         </form>
         <div class="settings-extra">
             <p class="version-label" id="versionDisplay">Kampus Auto Login v—</p>
-            <a
-                class="btn-report"
-                href="https://forms.gle/bDJZyb3WbQ5Twrsr9"
-                target="_blank"
-                rel="noopener noreferrer"
-                data-i18n="popupReportBug"
-            >Ilmoita ongelmasta</a>
+            <div class="settings-actions">
+                <a
+                    class="btn-report"
+                    href="https://forms.gle/6USnxpRyRLnYk7R28"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-i18n="popupFeedback"
+                >Anna palautetta</a>
+                <a
+                    class="btn-report"
+                    href="https://forms.gle/bDJZyb3WbQ5Twrsr9"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-i18n="popupReportBug"
+                >Ilmoita ongelmasta</a>
+            </div>
         </div>
     </div>
     <script src="i18n.js"></script>
+    <script src="preconfigured-school-domains.js"></script>
     <script src="setup.js"></script>
 </body>
 </html>

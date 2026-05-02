@@ -148,8 +148,11 @@
 
     async function isAutoLoginEnabled() {
         try {
-            const result = await browserApi.storage.sync.get({ autoLoginEnabled: true });
-            return result.autoLoginEnabled;
+            const result = await browserApi.storage.sync.get({
+                autoLoginEnabled: true,
+                schoolSupported: true
+            });
+            return result.autoLoginEnabled && result.schoolSupported;
         } catch (error) {
             console.error('Kampus Auto Login: Error reading settings on ADFS page', error);
             return true;
