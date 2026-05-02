@@ -10,9 +10,12 @@ When enabled, the extension automates the login process for Sanoma Pro Kampus:
 
 1. `kampus.sanomapro.fi` → `kirjautuminen.sanomapro.fi`
 2. Clicks the MPASSid login button
-3. Continues through `mpass-proxy.csc.fi`
-4. Handles your school login page automatically
-5. Redirects from the `sanomapro.fi` landing page back to `https://kampus.sanomapro.fi/`
+3. Selects your configured school on `mpass-proxy.csc.fi` when that school is supported
+4. Uses the configured school login domain for the municipality/school login page
+5. Continues the login after your browser has autofilled saved credentials
+6. Redirects from the `sanomapro.fi` landing page back to `https://kampus.sanomapro.fi/`
+
+If the selected school is not supported yet, the extension lets you save the school but skips login automation for it.
 
 https://github.com/user-attachments/assets/fb2a64f0-5d0d-466a-a311-19aea632caf8
 
@@ -64,12 +67,13 @@ This creates:
 
 ## First-time setup
 
-1. Click the extension icon and open **Change settings**.
+1. Click the extension icon and open **Settings**.
 2. In **Koulun nimi / School name**, start typing and select your school from the dropdown.
-3. In **Kirjautumisosoite / Login domain**, enter your municipality/school ADFS domain (example: `sts.edu.espoo.fi`). Some preconfigured schools auto-fill and lock this field for you.
-4. Click **Tallenna / Save**.
-5. Allow the requested permission for that exact login domain when prompted.
-6. Return to Kampus and sign in; after that, the extension can automate the flow when enabled.
+3. If your school is supported, **Kirjautumisosoite / Login domain** is filled and locked automatically.
+4. If your school is not supported yet, you can still save it and use the support request link in settings.
+5. Click **Tallenna / Save**.
+6. Allow the requested permission for that exact login domain when prompted.
+7. Return to Kampus and sign in; after that, the extension can automate the flow when enabled.
 
 ## Browser variants
 
@@ -80,7 +84,7 @@ The user experience is slightly different between browsers on the municipality l
 
 ## Permissions and privacy
 
-The extension stores only the settings needed for login automation in browser extension storage. If browser sync is enabled, those settings may sync between the user’s browsers.
+The extension stores only the settings needed for login automation in browser extension storage, such as selected school, login domain, language, and toggle states. If browser sync is enabled, those settings may sync between the user’s browsers.
 
 It does not store your password or other sensitive personal data.
 
