@@ -70,26 +70,220 @@ function getAdfsPattern(domain) {
     return `https://${domain}/adfs/ls/*`;
 }
 
-const preconfiguredSchoolDomains = {
-    'Otaniemen lukio': 'sts.edu.espoo.fi'
-};
+const schoolSupportRequestUrl = 'https://forms.gle/bDJZyb3WbQ5Twrsr9';
 
-function getLockedSchoolDomain(schoolName) {
-    return preconfiguredSchoolDomains[schoolName] || '';
+const preconfiguredSchoolDomainGroups = Array.isArray(globalThis.KAMPUS_PRECONFIGURED_SCHOOL_DOMAIN_GROUPS)
+    ? globalThis.KAMPUS_PRECONFIGURED_SCHOOL_DOMAIN_GROUPS
+    : [];
+const preconfiguredMpassTitleDomains =
+    globalThis.KAMPUS_PRECONFIGURED_MPASS_TITLE_DOMAINS &&
+    typeof globalThis.KAMPUS_PRECONFIGURED_MPASS_TITLE_DOMAINS === 'object' &&
+    !Array.isArray(globalThis.KAMPUS_PRECONFIGURED_MPASS_TITLE_DOMAINS)
+        ? globalThis.KAMPUS_PRECONFIGURED_MPASS_TITLE_DOMAINS
+        : {};
+
+function assignPreconfiguredSchoolDomain(domainBySchool, schoolName, domain, sourceLabel) {
+    const normalizedSchoolName = typeof schoolName === 'string' ? schoolName.trim() : '';
+    if (!normalizedSchoolName || !domain) {
+        return;
+    }
+
+    const existingDomain = domainBySchool[normalizedSchoolName];
+    if (existingDomain && existingDomain !== domain) {
+        console.warn(
+            `Kampus Auto Login: School "${normalizedSchoolName}" is assigned to multiple preconfigured domains (${existingDomain}, ${domain}) in ${sourceLabel}. Using the latest value.`
+        );
+    }
+
+    domainBySchool[normalizedSchoolName] = domain;
 }
 
-function applySchoolDomainRules(schoolName, domainInput) {
+function buildExplicitPreconfiguredSchoolDomains(groups, domainBySchool = Object.create(null)) {
+    groups.forEach((group, groupIndex) => {
+        const domain = normalizeDomain(group?.domain || '');
+        const schools = Array.isArray(group?.schools) ? group.schools : [];
+
+        if (!domain || schools.length === 0) {
+            return;
+        }
+
+        schools.forEach((schoolName) => {
+            assignPreconfiguredSchoolDomain(
+                domainBySchool,
+                schoolName,
+                domain,
+                `manual group #${groupIndex + 1}`
+            );
+        });
+    });
+
+    return domainBySchool;
+}
+
+function getMpassSchoolNames(group) {
+    const schools = Array.isArray(group?.schools) ? group.schools : [];
+    const schoolNames = schools
+        .map((school) => {
+            if (typeof school === 'string') {
+                return school.trim();
+            }
+            return typeof school?.school === 'string' ? school.school.trim() : '';
+        })
+        .filter(Boolean);
+
+    if (schoolNames.length === 0 && typeof group?.name === 'string') {
+        const groupName = group.name.trim();
+        if (groupName) {
+            schoolNames.push(groupName);
+        }
+    }
+
+    return schoolNames;
+}
+
+async function loadMpassGroups() {
+    const response = await fetch(extensionApi.runtime.getURL('mpassid_response.json'));
+    if (!response.ok) {
+        throw new Error('Failed to load bundled MPASSid response');
+    }
+
+    const data = await response.json();
+    if (!Array.isArray(data?.lista)) {
+        throw new Error('Bundled MPASSid response does not contain a group list');
+    }
+
+    return data.lista;
+}
+
+function buildMpassTitlePreconfiguredSchoolDomains(
+    groups,
+    domainsByTitle,
+    domainBySchool = Object.create(null)
+) {
+    groups.forEach((group) => {
+        const title = typeof group?.title === 'string' ? group.title.trim() : '';
+        const domain = normalizeDomain(domainsByTitle[title] || '');
+
+        if (!title || !domain) {
+            return;
+        }
+
+        getMpassSchoolNames(group).forEach((schoolName) => {
+            assignPreconfiguredSchoolDomain(
+                domainBySchool,
+                schoolName,
+                domain,
+                `MPASSid title "${title}"`
+            );
+        });
+    });
+
+    return domainBySchool;
+}
+
+let preconfiguredSchoolDomains = Object.create(null);
+
+async function initPreconfiguredSchoolDomains() {
+    const domainBySchool = Object.create(null);
+
+    try {
+        const mpassGroups = await loadMpassGroups();
+        buildMpassTitlePreconfiguredSchoolDomains(
+            mpassGroups,
+            preconfiguredMpassTitleDomains,
+            domainBySchool
+        );
+    } catch (e) {
+        console.warn('Kampus Auto Login: Could not load MPASSid grouped domain config:', e);
+    }
+
+    buildExplicitPreconfiguredSchoolDomains(preconfiguredSchoolDomainGroups, domainBySchool);
+    preconfiguredSchoolDomains = domainBySchool;
+    return preconfiguredSchoolDomains;
+}
+
+function getLockedSchoolDomain(schoolName) {
+    return preconfiguredSchoolDomains[(schoolName || '').trim()] || '';
+}
+
+function clearNode(node) {
+    while (node?.firstChild) {
+        node.removeChild(node.firstChild);
+    }
+}
+
+function hideUnsupportedSchoolMessage(messageElement) {
+    messageElement?.classList.remove('show');
+    clearNode(messageElement);
+}
+
+function showUnsupportedSchoolMessage(messageElement, lang) {
+    if (!messageElement) {
+        return;
+    }
+
+    clearNode(messageElement);
+
+    const title = document.createElement('strong');
+    title.textContent = t(lang, 'setupUnsupportedSchoolTitle');
+
+    const description = document.createElement('span');
+    description.textContent = t(lang, 'setupUnsupportedSchoolDescription');
+
+    const supportLink = document.createElement('a');
+    supportLink.href = schoolSupportRequestUrl;
+    supportLink.target = '_blank';
+    supportLink.rel = 'noopener noreferrer';
+    supportLink.textContent = t(lang, 'setupRequestSchoolSupport');
+
+    messageElement.appendChild(title);
+    messageElement.appendChild(description);
+    messageElement.appendChild(document.createTextNode(' '));
+    messageElement.appendChild(supportLink);
+    messageElement.classList.add('show');
+}
+
+function updateUnsupportedSchoolMessage(schoolName, messageElement, lang, { selected = false } = {}) {
+    if (selected && schoolName && !getLockedSchoolDomain(schoolName)) {
+        showUnsupportedSchoolMessage(messageElement, lang);
+        return;
+    }
+
+    hideUnsupportedSchoolMessage(messageElement);
+}
+
+function applySchoolDomainRules(schoolName, domainInput, { selected = false } = {}) {
     const lockedDomain = getLockedSchoolDomain(schoolName);
+    const previousLockedDomain = domainInput.dataset.lockedDomain || '';
+    const normalizedSchoolName = (schoolName || '').trim();
 
     if (lockedDomain) {
         domainInput.value = lockedDomain;
         domainInput.disabled = true;
         domainInput.required = true;
-        return;
+        domainInput.dataset.lockedDomain = lockedDomain;
+        delete domainInput.dataset.unsupportedSchool;
+        return true;
+    }
+
+    if (previousLockedDomain && normalizeDomain(domainInput.value) === previousLockedDomain) {
+        domainInput.value = '';
+    }
+
+    if (selected && normalizedSchoolName) {
+        domainInput.value = '';
+        domainInput.disabled = true;
+        domainInput.required = false;
+        domainInput.dataset.unsupportedSchool = 'true';
+        delete domainInput.dataset.lockedDomain;
+        return false;
     }
 
     domainInput.disabled = false;
     domainInput.required = true;
+    delete domainInput.dataset.lockedDomain;
+    delete domainInput.dataset.unsupportedSchool;
+    return false;
 }
 
 async function ensureAdfsPermission(domain) {
@@ -135,6 +329,7 @@ async function initSchoolSelector(getCurrentLang) {
     const dropdown = document.getElementById('schoolDropdown');
     const schoolNameHidden = document.getElementById('schoolName');
     const domainInput = document.getElementById('adfsDomain');
+    const unsupportedSchoolMessage = document.getElementById('unsupportedSchoolMessage');
     let allSchoolNames = [];
     let searchableSchoolNames = [];
 
@@ -207,7 +402,10 @@ async function initSchoolSelector(getCurrentLang) {
             option.addEventListener('click', () => {
                 searchInput.value = schoolName;
                 schoolNameHidden.value = schoolName;
-                applySchoolDomainRules(schoolName, domainInput);
+                applySchoolDomainRules(schoolName, domainInput, { selected: true });
+                updateUnsupportedSchoolMessage(schoolName, unsupportedSchoolMessage, getCurrentLang(), {
+                    selected: true
+                });
                 dropdown.classList.remove('active');
             });
             dropdown.appendChild(option);
@@ -220,7 +418,10 @@ async function initSchoolSelector(getCurrentLang) {
         if (stored.schoolName) {
             searchInput.value = stored.schoolName;
             schoolNameHidden.value = stored.schoolName;
-            applySchoolDomainRules(stored.schoolName, domainInput);
+            applySchoolDomainRules(stored.schoolName, domainInput, { selected: true });
+            updateUnsupportedSchoolMessage(stored.schoolName, unsupportedSchoolMessage, getCurrentLang(), {
+                selected: true
+            });
         }
     } catch (e) {
         console.error('Error loading stored school:', e);
@@ -231,6 +432,7 @@ async function initSchoolSelector(getCurrentLang) {
         const filter = e.target.value.trim();
         schoolNameHidden.value = '';
         applySchoolDomainRules(filter, domainInput);
+        hideUnsupportedSchoolMessage(unsupportedSchoolMessage);
 
         if (filter.length === 0) {
             dropdown.classList.remove('active');
@@ -292,7 +494,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         console.error('Error loading settings:', e);
     }
 
-    applySchoolDomainRules(storageResult.schoolName, domainInput);
+    await initPreconfiguredSchoolDomains();
+    applySchoolDomainRules(storageResult.schoolName, domainInput, {
+        selected: Boolean((storageResult.schoolName || '').trim())
+    });
 
     applyTranslations(currentLang);
 
@@ -312,6 +517,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.error('Error saving language:', e);
         }
         applyTranslations(currentLang);
+        updateUnsupportedSchoolMessage(
+            schoolNameHidden.value,
+            document.getElementById('unsupportedSchoolMessage'),
+            currentLang,
+            { selected: Boolean((schoolNameHidden.value || '').trim()) }
+        );
     }
 
     langSelect.addEventListener('change', () => switchLanguage(langSelect.value));
@@ -319,9 +530,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
         const schoolName = (schoolNameHidden.value || searchInput.value || '').trim();
-        const domain = normalizeDomain(domainInput.value);
+        const lockedDomain = getLockedSchoolDomain(schoolName);
+        const schoolSupported = Boolean(lockedDomain);
+        const domain = schoolSupported ? normalizeDomain(domainInput.value || lockedDomain) : '';
         
-        if (!schoolName || !domain) {
+        if (!schoolName || (schoolSupported && !domain)) {
             showFormError(t(currentLang, 'setupSaveError'));
             return;
         }
@@ -329,14 +542,20 @@ document.addEventListener('DOMContentLoaded', async function () {
         hideFormError();
         saveBtn.disabled = true;
         try {
-            const granted = await ensureAdfsPermission(domain);
-            if (!granted) {
-                showFormError(t(currentLang, 'setupPermissionRequired'));
-                saveBtn.disabled = false;
-                return;
+            if (schoolSupported) {
+                const granted = await ensureAdfsPermission(domain);
+                if (!granted) {
+                    showFormError(t(currentLang, 'setupPermissionRequired'));
+                    saveBtn.disabled = false;
+                    return;
+                }
             }
 
-            await extensionApi.storage.sync.set({ schoolName, adfsDomain: domain });
+            await extensionApi.storage.sync.set({
+                schoolName,
+                adfsDomain: domain,
+                schoolSupported
+            });
             const msg = t(currentLang, 'setupSuccessMsg');
             showSuccessOverlay(msg);
             setTimeout(() => {

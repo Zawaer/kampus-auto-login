@@ -45,11 +45,12 @@ async function shouldInjectAdfs(tabUrl) {
 
     const settings = await extensionApi.storage.sync.get({
         adfsDomain: '',
-        autoLoginEnabled: true
+        autoLoginEnabled: true,
+        schoolSupported: true
     });
 
     const configuredDomain = (settings.adfsDomain || '').trim().toLowerCase();
-    if (!settings.autoLoginEnabled || !configuredDomain) {
+    if (!settings.autoLoginEnabled || !settings.schoolSupported || !configuredDomain) {
         return false;
     }
 

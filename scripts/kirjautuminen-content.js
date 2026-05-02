@@ -17,9 +17,10 @@
     async function checkAutoLoginEnabled() {
         try {
             const result = await extensionApi.storage.sync.get({
-                autoLoginEnabled: true
+                autoLoginEnabled: true,
+                schoolSupported: true
             });
-            return result.autoLoginEnabled;
+            return result.autoLoginEnabled && result.schoolSupported;
         } catch (error) {
             console.error('Kampus Auto Login: Error checking settings:', error);
             return true;
