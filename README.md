@@ -4,6 +4,8 @@ Kampus Auto Login speeds up the Sanoma Pro Kampus sign-in flow by automatically 
 
 **Disclaimer:** Kampus Auto Login is an unofficial browser extension and is not affiliated with, endorsed by, or supported by Sanoma Pro, MPASSid, or any school or municipality.
 
+<img width="2560" height="1600" alt="Promo" src="https://github.com/user-attachments/assets/219a486c-6970-4abd-ac95-8a75f9c60615" />
+
 ## What it does
 
 When enabled, the extension automates the login process for Sanoma Pro Kampus:
