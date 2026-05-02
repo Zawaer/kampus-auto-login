@@ -70,7 +70,15 @@ function getAdfsPattern(domain) {
     return `https://${domain}/adfs/ls/*`;
 }
 
-const schoolSupportRequestUrl = 'https://forms.gle/bDJZyb3WbQ5Twrsr9';
+function normalizeSchoolSearchValue(value) {
+    return (value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+}
+
+const schoolSupportRequestUrl = 'https://forms.gle/yqLxByjw8DdKbaWe9';
 
 const preconfiguredSchoolDomainGroups = Array.isArray(globalThis.KAMPUS_PRECONFIGURED_SCHOOL_DOMAIN_GROUPS)
     ? globalThis.KAMPUS_PRECONFIGURED_SCHOOL_DOMAIN_GROUPS
@@ -363,6 +371,34 @@ async function initSchoolSelector(getCurrentLang) {
         return t(getCurrentLang(), key);
     }
 
+    function getSchoolSearchMatch(entry, normalizedFilter) {
+        if (!normalizedFilter) {
+            return { rank: 0, index: 0 };
+        }
+
+        if (entry.normalizedName === normalizedFilter) {
+            return { rank: 0, index: 0 };
+        }
+
+        if (entry.normalizedName.startsWith(normalizedFilter)) {
+            return { rank: 1, index: 0 };
+        }
+
+        const wordPrefixIndex = entry.normalizedWords.findIndex((word) =>
+            word.startsWith(normalizedFilter)
+        );
+        if (wordPrefixIndex !== -1) {
+            return { rank: 2, index: wordPrefixIndex };
+        }
+
+        const includesIndex = entry.normalizedName.indexOf(normalizedFilter);
+        if (includesIndex !== -1) {
+            return { rank: 3, index: includesIndex };
+        }
+
+        return null;
+    }
+
     // Show loading state
     showDropdownMessage('school-loading', translate('setupSchoolLoading'));
     dropdown.classList.add('active');
@@ -370,7 +406,8 @@ async function initSchoolSelector(getCurrentLang) {
     allSchoolNames = await loadSchoolNames();
     searchableSchoolNames = allSchoolNames.map((schoolName) => ({
         schoolName,
-        normalizedName: schoolName.toLowerCase()
+        normalizedName: normalizeSchoolSearchValue(schoolName),
+        normalizedWords: normalizeSchoolSearchValue(schoolName).split(/\s+/).filter(Boolean)
     }));
 
     if (allSchoolNames.length === 0) {
@@ -383,10 +420,18 @@ async function initSchoolSelector(getCurrentLang) {
 
     // Render schools based on filter
     function renderSchools(filter = '') {
-        const normalizedFilter = filter.toLowerCase();
-        const filtered = searchableSchoolNames.filter(({ normalizedName }) =>
-            normalizedName.includes(normalizedFilter)
-        );
+        const normalizedFilter = normalizeSchoolSearchValue(filter);
+        const filtered = searchableSchoolNames
+            .map((entry) => ({
+                ...entry,
+                match: getSchoolSearchMatch(entry, normalizedFilter)
+            }))
+            .filter(({ match }) => match)
+            .sort((a, b) =>
+                a.match.rank - b.match.rank ||
+                a.match.index - b.match.index ||
+                a.schoolName.localeCompare(b.schoolName, 'fi', { sensitivity: 'base' })
+            );
 
         if (filtered.length === 0) {
             showDropdownMessage('school-error', translate('setupSchoolNotFound'));
