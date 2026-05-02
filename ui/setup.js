@@ -298,17 +298,20 @@ async function ensureAdfsPermission(domain) {
     const optionalOrigins = extensionApi.runtime.getManifest()?.optional_host_permissions || [];
     const supportsOptionalAdfs = optionalOrigins.includes('https://*/adfs/ls/*');
 
-    if (!supportsOptionalAdfs || !extensionApi.permissions?.contains || !extensionApi.permissions?.request) {
+    if (!supportsOptionalAdfs || !extensionApi.permissions?.request) {
         return true;
     }
 
     const pattern = getAdfsPattern(domain);
-    const alreadyGranted = await extensionApi.permissions.contains({ origins: [pattern] });
-    if (alreadyGranted) {
-        return true;
+    try {
+        // Firefox/Zen requires permissions.request() to stay directly tied to
+        // the Save click. A permissions.contains() await before this can cause
+        // the prompt to fail without appearing.
+        return await extensionApi.permissions.request({ origins: [pattern] });
+    } catch (error) {
+        console.error('Kampus Auto Login: Failed to request ADFS permission', error);
+        return false;
     }
-
-    return await extensionApi.permissions.request({ origins: [pattern] });
 }
 
 async function loadSchoolNames() {

@@ -86,6 +86,8 @@ The user experience is slightly different between browsers on the municipality l
 
 The extension stores only the settings needed for login automation in browser extension storage, such as selected school, login domain, language, and toggle states. If browser sync is enabled, those settings may sync between the user’s browsers.
 
+On Chrome/Chromium and Firefox, the extension requests access to the exact supported login domain selected during setup. The broader `https://*/adfs/ls/*` pattern is declared only as an optional permission template so the extension can ask for the specific selected domain at runtime.
+
 It does not store your password or other sensitive personal data.
 
 ## License
