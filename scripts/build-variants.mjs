@@ -56,7 +56,13 @@ async function buildTarget(target) {
   await rm(outDir, { recursive: true, force: true });
   await mkdir(outDir, { recursive: true });
 
-  const ignoredTopLevel = new Set(['.git', 'dist', 'manifests', 'node_modules', 'manifest.json']);
+  const ignoredTopLevel = new Set([
+    '.git',
+    'dist',
+    'manifests',
+    'node_modules',
+    'school_names.json'
+  ]);
   const rootEntries = await readdir(rootDir, { withFileTypes: true });
 
   for (const entry of rootEntries) {

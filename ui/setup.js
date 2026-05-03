@@ -314,20 +314,24 @@ async function ensureAdfsPermission(domain) {
     }
 }
 
+function buildSchoolNamesFromMpassGroups(groups) {
+    const schoolNames = new Set();
+
+    groups.forEach((group) => {
+        getMpassSchoolNames(group).forEach((schoolName) => {
+            schoolNames.add(schoolName);
+        });
+    });
+
+    return Array.from(schoolNames).sort((a, b) =>
+        a.localeCompare(b, 'fi', { sensitivity: 'base' })
+    );
+}
+
 async function loadSchoolNames() {
     try {
-        const response = await fetch(extensionApi.runtime.getURL('school_names.json'));
-        if (!response.ok) throw new Error('Failed to load bundled school list');
-
-        const data = await response.json();
-        if (!Array.isArray(data)) {
-            throw new Error('Bundled school list is not an array');
-        }
-
-        return data
-            .filter((name) => typeof name === 'string')
-            .map((name) => name.trim())
-            .filter(Boolean);
+        const mpassGroups = await loadMpassGroups();
+        return buildSchoolNamesFromMpassGroups(mpassGroups);
     } catch (e) {
         console.error('Failed to load school names:', e);
         return [];
