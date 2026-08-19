@@ -608,6 +608,11 @@ document.addEventListener('DOMContentLoaded', async function () {
                 adfsDomain: domain,
                 schoolSupported
             });
+            try {
+                await extensionApi.runtime.sendMessage({ action: 'syncAdfsAutomation' });
+            } catch (e) {
+                // storage.onChanged in the background script covers this as a fallback.
+            }
             const msg = t(currentLang, 'setupSuccessMsg');
             showSuccessOverlay(msg);
             setTimeout(() => {
