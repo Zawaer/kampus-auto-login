@@ -2,6 +2,13 @@
 
 Tired of manually logging in to Sanoma Pro Kampus again and again? Kampus Auto Login saves time by automating the repetitive parts of the login flow. It can navigate through the Kampus, Sanoma Pro, and MPASSid pages, select your supported school, and continue the login process after your browser fills your saved credentials.
 
+## Install
+
+- **Chrome, Edge, Brave, and other Chromium browsers** — [Install Kampus Auto Login from the Chrome Web Store](https://chromewebstore.google.com/detail/kampus-auto-login/jnlidjmljocgjaapbnmfjbkcmghmogkd)
+- **Firefox and Zen** — [Install Kampus Auto Login from Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/kampus-auto-login/)
+
+Kampus Auto Login is available for both Chrome and Firefox.
+
 **Disclaimer:** Kampus Auto Login is an unofficial browser extension and is not affiliated with, endorsed by, or supported by Sanoma Pro, MPASSid, or any school or municipality.
 
 <img width="2560" height="1600" alt="Promo" src="https://github.com/user-attachments/assets/219a486c-6970-4abd-ac95-8a75f9c60615" />
@@ -21,14 +28,9 @@ If the selected school is not supported yet, the extension lets you save the sch
 
 https://github.com/user-attachments/assets/fb2a64f0-5d0d-466a-a311-19aea632caf8
 
-## Installation
+## Building from source
 
-### Install from the browser stores
-
-- **[Kampus Auto Login for Chrome](https://chromewebstore.google.com/detail/kampus-auto-login/jnlidjmljocgjaapbnmfjbkcmghmogkd)** (Chrome Web Store)
-- **[Kampus Auto Login for Firefox](https://addons.mozilla.org/en-US/firefox/addon/kampus-auto-login/)** (Firefox Add-ons)
-
-### Or build it locally
+Most people should use the store links above. To build it yourself:
 
 Build browser-specific packages first:
 
