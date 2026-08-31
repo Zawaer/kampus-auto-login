@@ -11,6 +11,26 @@
     const removeElementWithFade = contentCommon.removeElementWithFade || (() => false);
     const showSchoolRequiredOverlay = contentCommon.showSchoolRequiredOverlay || (() => false);
 
+    // The login page is a RequireJS single-page app: at document_end the DOM is
+    // still just a "Loading..." placeholder, and the MPASSid link is rendered
+    // seconds later. On a slow connection - or when several tabs are opened at
+    // once from a bookmark folder and fight over the bandwidth - that can take
+    // well over twenty seconds, so give it a generous window instead of a fixed
+    // handful of tries.
+    const MPASS_WAIT_TIMEOUT_MS = 45000;
+    const MPASS_POLL_INTERVAL_MS = 500;
+
+    // Ordered from most to least specific. The current page wraps the link in
+    // .idp-links and points it at the MPASSid SAML endpoint; the #mpass markup
+    // is kept for older/other realms that still use it.
+    const MPASS_SELECTORS = Object.freeze([
+        '.idp-links a[href*="mpass"]',
+        'a[href*="mpass-proxy.csc.fi"]',
+        'a[href*="spssoinit"][href*="mpass"]',
+        '#mpass > div.form-group > a',
+        '#mpass a'
+    ]);
+
     console.log('Kampus Auto Login: Running on kirjautuminen.sanomapro.fi');
     
     // Check if auto-login is enabled before proceeding
@@ -68,6 +88,10 @@
         return elementArea > viewportArea * 0.35;
     }
 
+    function isOwnOverlay(element) {
+        return Boolean(element && typeof element.id === 'string' && element.id.startsWith('kampus-autologin'));
+    }
+
     function pickTopmostAtCenter(element) {
         const rect = element.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
@@ -75,27 +99,63 @@
         if (centerX < 0 || centerY < 0 || centerX > window.innerWidth || centerY > window.innerHeight) {
             return element;
         }
-        const topmost = document.elementFromPoint(centerX, centerY);
-        if (!topmost) {
-            return element;
+
+        // Our own loading overlay covers the whole viewport, so elementFromPoint
+        // would hand back the overlay and the synthetic click would land there
+        // instead of on the login link. Walk the hit-test stack past it.
+        const stack = typeof document.elementsFromPoint === 'function'
+            ? document.elementsFromPoint(centerX, centerY)
+            : [document.elementFromPoint(centerX, centerY)];
+
+        for (const candidate of stack) {
+            if (!candidate || isOwnOverlay(candidate)) {
+                continue;
+            }
+            return findClickableAncestor(candidate) || candidate;
         }
-        return findClickableAncestor(topmost) || topmost;
+
+        return element;
     }
 
+    // Returns true when the page's own handler consumed the click (it cancels the
+    // event), which means it has already started navigating and we must not
+    // navigate on top of it.
     function dispatchUserClick(target) {
-        const events = [
-            new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window }),
-            new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }),
-            new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }),
-            new MouseEvent('click', { bubbles: true, cancelable: true, view: window })
-        ];
+        const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
 
         target.focus && target.focus();
-        for (const event of events) {
-            target.dispatchEvent(event);
+        target.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window }));
+        target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
+        target.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
+        target.dispatchEvent(clickEvent);
+
+        if (clickEvent.defaultPrevented) {
+            return true;
         }
+
         if (typeof target.click === 'function') {
             target.click();
+        }
+        return false;
+    }
+
+    // The login page's MPASSid link runs an inline onclick that copies the
+    // current `goto` into RelayState, so the IdP round-trip comes back to
+    // Kampus. Mirror that whenever we have to navigate by hand.
+    function withRelayState(href) {
+        try {
+            const goto = new URLSearchParams(window.location.search).get('goto');
+            if (!goto) {
+                return href;
+            }
+
+            const url = new URL(href, window.location.href);
+            if (!url.searchParams.has('RelayState')) {
+                url.searchParams.set('RelayState', goto);
+            }
+            return url.toString();
+        } catch (error) {
+            return href;
         }
     }
 
@@ -118,11 +178,19 @@
         try {
             const topmost = pickTopmostAtCenter(target);
             const clickTarget = topmost || target;
-            dispatchUserClick(clickTarget);
-            
-            if (target.tagName === 'A' && target.href) {
-                const targetHref = target.href;
+            const handledByPage = dispatchUserClick(clickTarget);
+
+            if (!handledByPage && target.tagName === 'A' && target.href) {
+                const targetHref = withRelayState(target.href);
+                let unloading = false;
+                const markUnloading = () => { unloading = true; };
+                window.addEventListener('beforeunload', markUnloading, { once: true });
+                window.addEventListener('pagehide', markUnloading, { once: true });
+
                 setTimeout(() => {
+                    if (unloading) {
+                        return;
+                    }
                     try {
                         window.location.href = targetHref;
                     } catch (e) {
@@ -130,7 +198,7 @@
                     }
                 }, 400);
             }
-            
+
             return true;
         } catch (error) {
             console.error('Kampus Auto Login: Click failed', error);
@@ -141,6 +209,15 @@
                 console.error('Kampus Auto Login: Fallback click failed', dispatchError);
                 return false;
             }
+        }
+    }
+
+    function getDescendantImageAlt(element) {
+        try {
+            const image = element.querySelector && element.querySelector('img[alt]');
+            return image ? image.getAttribute('alt') : '';
+        } catch (e) {
+            return '';
         }
     }
 
@@ -160,16 +237,28 @@
             const className = normalizeText(clickable.className || element.className || '');
             const href = normalizeText(clickable.getAttribute && clickable.getAttribute('href'));
             const ariaLabel = normalizeText(clickable.getAttribute && clickable.getAttribute('aria-label'));
+            const title = normalizeText(clickable.getAttribute && clickable.getAttribute('title'));
+            const imageAlt = normalizeText(getDescendantImageAlt(clickable));
 
             let score = 0;
-            if (text.includes('käytä mpassid:tä') || ownText.includes('käytä mpassid:tä')) score += 120;
-            if (text.includes('mpassid') || ownText.includes('mpassid')) score += 90;
-            if (text.includes('mpass') || ownText.includes('mpass')) score += 60;
-            if (id.includes('mpass') || className.includes('mpass') || href.includes('mpass') || ariaLabel.includes('mpass')) score += 50;
+            let hasMPASSEvidence = false;
+
+            const mark = (points) => {
+                score += points;
+                hasMPASSEvidence = true;
+            };
+
+            if (text.includes('käytä mpassid:tä') || ownText.includes('käytä mpassid:tä')) mark(120);
+            if (text.includes('mpassid') || ownText.includes('mpassid') || title.includes('mpassid') || imageAlt.includes('mpassid')) mark(90);
+            if (text.includes('mpass') || ownText.includes('mpass') || title.includes('mpass') || imageAlt.includes('mpass')) mark(60);
+            if (id.includes('mpass') || className.includes('mpass') || href.includes('mpass') || ariaLabel.includes('mpass')) mark(50);
             if (clickable.matches('a, button, [role="button"], input[type="button"], input[type="submit"]')) score += 30;
             if (isLikelyContainer(clickable)) score -= 100;
 
-            if (score > 0) {
+            // Being clickable alone is not evidence of anything: without it this
+            // ranked every link on the page and happily clicked the footer while
+            // the single-page app was still rendering the real MPASSid link.
+            if (hasMPASSEvidence && score > 0) {
                 ranked.push({ element: clickable, score });
             }
         }
@@ -183,14 +272,11 @@
     }
     
     function findAndClickMPASSButton() {
-        const mpassButton = document.querySelector('#mpass > div.form-group > a > div');
-        if (mpassButton) {
-            return clickElement(mpassButton);
-        }
-        
-        const mpassAnchor = document.querySelector('#mpass > div.form-group > a');
-        if (mpassAnchor) {
-            return clickElement(mpassAnchor);
+        for (const selector of MPASS_SELECTORS) {
+            const candidate = document.querySelector(selector);
+            if (candidate && isVisible(candidate)) {
+                return clickElement(candidate);
+            }
         }
 
         const mpassByText = findMPASSElementByText();
@@ -199,6 +285,49 @@
         }
         
         return false;
+    }
+
+    function waitForMPASSButtonAndClick(giveUpMessage) {
+        const clicked = findAndClickMPASSButton();
+
+        let observer = null;
+        let poll = null;
+
+        const stopWatching = () => {
+            if (observer) {
+                observer.disconnect();
+                observer = null;
+            }
+            if (poll) {
+                clearInterval(poll);
+                poll = null;
+            }
+        };
+
+        // The timeout is deliberately left running even after a successful click:
+        // if the click somehow does not navigate, it still clears the overlay so
+        // the user is not left staring at a spinner over a usable login form.
+        setTimeout(() => {
+            if (observer || poll) {
+                stopWatching();
+                console.log(giveUpMessage);
+            }
+            removeElementWithFade('kampus-autologin-overlay');
+        }, MPASS_WAIT_TIMEOUT_MS);
+
+        if (clicked) {
+            return;
+        }
+
+        const attempt = () => {
+            if (findAndClickMPASSButton()) {
+                stopWatching();
+            }
+        };
+
+        observer = new MutationObserver(attempt);
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+        poll = setInterval(attempt, MPASS_POLL_INTERVAL_MS);
     }
     
     async function waitAndTryClick() {
@@ -243,23 +372,9 @@
         console.log('Kampus Auto Login: Auto-login is enabled, proceeding...');
         showLoadingOverlay(t(uiLanguage, 'commonLoggingInLabel'));
         
-        if (findAndClickMPASSButton()) {
-            return;
-        }
-        
-        let attempts = 0;
-        const maxAttempts = 10;
-        const interval = setInterval(() => {
-            attempts++;
-            
-            if (findAndClickMPASSButton() || attempts >= maxAttempts) {
-                clearInterval(interval);
-                if (attempts >= maxAttempts) {
-                    console.log('Kampus Auto Login: Could not find MPASSid button after', maxAttempts, 'attempts');
-                    removeElementWithFade('kampus-autologin-overlay');
-                }
-            }
-        }, 1000);
+        waitForMPASSButtonAndClick(
+            `Kampus Auto Login: Could not find MPASSid button within ${MPASS_WAIT_TIMEOUT_MS} ms`
+        );
     }
     
     if (document.readyState === 'loading') {
